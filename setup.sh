@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+use_fish=true
+
 brews=(
   bash
   brew-cask
@@ -172,19 +174,22 @@ function proceed_prompt {
   fi
 }
 
-echo "Setting up fish shell ..."
-brew install fish
-echo $(which fish) | sudo tee -a /etc/shells
-chsh -s $(which fish)
-curl -L https://github.com/oh-my-fish/oh-my-fish/raw/master/bin/install | fish
-install 'omf install' ${omfs[@]}
+# Disable fish for now
+if [ "$use_fish" = true ]
+  echo "Setting up fish shell ..."
+  brew install fish
+  echo $(which fish) | sudo tee -a /etc/shells
+  chsh -s $(which fish)
+  curl -L https://github.com/oh-my-fish/oh-my-fish/raw/master/bin/install | fish
+  install 'omf install' ${omfs[@]}
 
-echo "Installing ruby ..."
-brew install ruby-install chruby chruby-fish
-ruby-install ruby
-echo "source /usr/local/share/chruby/chruby.fish" >> ~/.config/fish/config.fish
-echo "source /usr/local/share/chruby/auto.fish" >> ~/.config/fish/config.fish
-ruby -v
+  echo "Installing ruby ..."
+  brew install ruby-install chruby chruby-fish
+  ruby-install ruby
+  echo "source /usr/local/share/chruby/chruby.fish" >> ~/.config/fish/config.fish
+  echo "source /usr/local/share/chruby/auto.fish" >> ~/.config/fish/config.fish
+  ruby -v
+fi
 
 brew info ${brews[@]}
 proceed_prompt
