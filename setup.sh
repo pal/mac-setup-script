@@ -1,100 +1,60 @@
 #!/usr/bin/env bash
 
 brews=(
-  android-platform-tools
-  archey
   bash
   brew-cask
-  cheat
   clib
-  coreutils
-  dfc
-  findutils
   fpp
-  fzf
-  git
-  git-extras
-  go
   gpg
-  hh
   htop
   httpie
   iftop
-  lighttpd
-  lnav
-  mackup
-  macvim
-  mtr
   ncdu
   nmap
   node
-  postgresql
-  pgcli
   python
   python3
+  git
   scala
   sbt
-  stormssh
-  tmux
-  tree
-  trash
+  heroku
+  boot2docker
+  findutils
+  gnu-sed
+  maven
+  ant
+  jenv
+  nvm
+  rbenv
+  ruby-build
+  nom
+  jq
   wget
+  elasticsearch
+  homeshick
 )
 
 casks=(
-  adobe-reader
-  airdroid
-  asepsis
-  atom
-  betterzipql
-  cakebrew
-  chromecast
-  cleanmymac
-  commander-one
-  datagrip
-  dockertoolbox
-  dropbox
-  firefox
   google-chrome
-  google-drive
-  github
-  gitter
-  hosts
-  handbrake
-  intellij-idea
-  istat-menus
-  istat-server
-  licecap
-  iterm2
-  qlcolorcode
-  qlmarkdown
-  qlstephen
-  quicklook-json
-  quicklook-csv
-  java
-  launchrocket
-  microsoft-office
-  plex-home-theater
-  plex-media-server
-  private-eye
-  satellite-eyes
-  sidekick
-  skype
+  firefox
+  atom
+  lastpass
   slack
+  java
+  virtualbox
+  datagrip
+  textwrangler
+  mamp
   spotify
-  steam
-  teleport
-  transmission
-  transmission-remote-gui
-  tunnelbear
-  vlc
-  webstorm
-)
-
-pips=(
-  glances
-  ohmu
-  pythonpy
+  hipchat
+  skype
+  evernote
+  alfred
+  dropbox
+  google-drive
+  microsoft-office
+  paparazzi
+  github
 )
 
 gems=(
@@ -103,13 +63,6 @@ gems=(
 )
 
 npms=(
-  coffee-script
-  fenix-cli
-  gitjk
-  kill-tabs
-  n
-  speed-test
-  wifi-password
 )
 
 clibs=(
@@ -138,8 +91,6 @@ git_configs=(
 apms=(
   atom-beautify
   autocomplete-plus
-  circle-ci
-  ensime
   language-coffee-script
   language-gfm
   language-html
@@ -154,11 +105,16 @@ apms=(
   language-yaml
   markdown-preview
   minimap
-  nuclide-installer
 )
 
 fonts=(
-  font-source-code-pro
+	font-source-code-pro
+  font-asap
+  font-open-sans
+  font-open-sans-condensed
+  font-eb-garamond
+  font-trebuchet-ms
+  font-input
 )
 
 omfs=(
