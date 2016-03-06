@@ -32,6 +32,7 @@ brews=(
   wget
   elasticsearch
   homeshick
+  mackup
 )
 
 casks=(
