@@ -76,7 +76,6 @@ git_configs=(
   "branch.autoSetupRebase always"
   "color.ui auto"
   "core.autocrlf input"
-  "core.pager ''"
   "credential.helper osxkeychain"
   "merge.ff false"
   "pull.rebase true"
@@ -84,8 +83,8 @@ git_configs=(
   "rebase.autostash true"
   "rerere.autoUpdate true"
   "rerere.enabled true"
-  "user.name pathikrit"
-  "user.email pathikritbhowmick@msn.com"
+  "user.name Pål Brattberg"
+  "user.email pal@subtree.se"
 )
 
 apms=(
@@ -108,7 +107,7 @@ apms=(
 )
 
 fonts=(
-	font-source-code-pro
+  font-source-code-pro
   font-asap
   font-open-sans
   font-open-sans-condensed
