@@ -53,7 +53,6 @@ casks=(
   dropbox
   google-drive
   microsoft-office
-  github
 )
 
 gems=(
