@@ -218,7 +218,7 @@ fi
 echo "Upgrading ..."
 # pip install --upgrade setuptools
 # pip install --upgrade pip
-gem update --system
+sudo gem update --system
 
 echo "Cleaning up ..."
 brew cleanup
