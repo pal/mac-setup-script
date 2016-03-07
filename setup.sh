@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-use_fish=true
+use_fish=false
 
 brews=(
   bash
@@ -139,6 +139,7 @@ else
   brew update
   brew upgrade
 fi
+
 brew doctor
 brew tap homebrew/dupes
 
@@ -176,6 +177,7 @@ function proceed_prompt {
 
 # Disable fish for now
 if [ "$use_fish" = true ]
+then
   echo "Setting up fish shell ..."
   brew install fish
   echo $(which fish) | sudo tee -a /etc/shells
@@ -204,10 +206,10 @@ proceed_prompt
 install 'brew cask install --appdir="/Applications"' ${casks[@]}
 
 # TODO: add info part of install or do reinstall?
-install 'pip install --upgrade' ${pips[@]}
+#install 'pip install --upgrade' ${pips[@]}
 install 'gem install' ${gems[@]}
-install 'clib install' ${clibs[@]}
-install 'bpkg install' ${bpkgs[@]}
+#install 'clib install' ${clibs[@]}
+#install 'bpkg install' ${bpkgs[@]}
 install 'npm install --global' ${npms[@]}
 install 'apm install' ${apms[@]}
 install 'brew cask install' ${fonts[@]}
@@ -222,10 +224,13 @@ do
 done
 git alias rpush '! git up && git push'
 
-echo "Setting up go ..."
-mkdir -p /usr/libs/go
-echo "export GOPATH=/usr/libs/go" >> ~/.config/fish/config.fish
-echo "export PATH=$PATH:$GOPATH/bin" >> ~/.config/fish/config.fish
+if [ "$use_fish" = true ]
+then
+  echo "Setting up go ..."
+  mkdir -p /usr/libs/go
+  echo "export GOPATH=/usr/libs/go" >> ~/.config/fish/config.fish
+  echo "export PATH=$PATH:$GOPATH/bin" >> ~/.config/fish/config.fish
+fi
 
 echo "Upgrading ..."
 pip install --upgrade setuptools
@@ -244,5 +249,5 @@ done
 
 echo "Run `mackup restore` after DropBox has done syncing"
 
-read -p "Hit enter to run [OSX for Hackers] script..." c
-sh -c "$(curl -sL https://gist.githubusercontent.com/brandonb927/3195465/raw/osx-for-hackers.sh)"
+#read -p "Hit enter to run [OSX for Hackers] script..." c
+#sh -c "$(curl -sL https://gist.githubusercontent.com/brandonb927/3195465/raw/osx-for-hackers.sh)"
