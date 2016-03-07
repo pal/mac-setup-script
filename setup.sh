@@ -6,7 +6,6 @@ brews=(
   bash
   brew-cask
   clib
-  fpp
   gpg
   htop
   httpie
@@ -15,7 +14,6 @@ brews=(
   nmap
   node
   python
-  python3
   git
   scala
   sbt
