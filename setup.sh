@@ -30,7 +30,6 @@ brews=(
   jq
   wget
   elasticsearch
-  homeshick
   mackup
 )
 
@@ -194,6 +193,12 @@ install 'gem install' ${gems[@]}
 install 'npm install --global' ${npms[@]}
 install 'apm install' ${apms[@]}
 install 'brew cask install' ${fonts[@]}
+
+echo "Adding homeshick ..."
+git clone git://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
+source "$HOME/.homesick/repos/homeshick/homeshick.sh"
+homeshick clone pal/profile
+ln -s $HOME/.profile.d/init $HOME/.profile
 
 echo "Upgrading bash ..."
 sudo bash -c "echo $(brew --prefix)/bin/bash >> /private/etc/shells"
