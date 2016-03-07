@@ -216,8 +216,8 @@ then
 fi
 
 echo "Upgrading ..."
-pip install --upgrade setuptools
-pip install --upgrade pip
+# pip install --upgrade setuptools
+# pip install --upgrade pip
 gem update --system
 
 echo "Cleaning up ..."
