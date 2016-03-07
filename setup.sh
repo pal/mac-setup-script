@@ -86,20 +86,7 @@ git_configs=(
 
 apms=(
   atom-beautify
-  autocomplete-plus
-  language-coffee-script
-  language-gfm
-  language-html
-  language-java
-  language-javascript
-  language-json
-  language-python
   language-scala
-  language-shellscript
-  language-sql
-  language-xml
-  language-yaml
-  markdown-preview
   minimap
 )
 
@@ -216,7 +203,7 @@ for config in "${git_configs[@]}"
 do
   git config --global ${config}
 done
-git alias rpush '! git up && git push'
+#git alias rpush '! git up && git push'
 
 if [ "$use_fish" = true ]
 then
