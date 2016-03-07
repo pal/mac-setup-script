@@ -50,8 +50,7 @@ casks=(
   alfred
   dropbox
   google-drive
-  microsoft-office
-)
+  microsoft-office)
 
 gems=(
   bundler
@@ -95,8 +94,7 @@ fonts=(
   font-open-sans-condensed
   font-eb-garamond
   font-trebuchet-ms
-  font-input
-)
+  font-input)
 
 omfs=(
   jacaetevha
