@@ -233,6 +233,8 @@ do
   echo "Failed to install: $fail"
 done
 
+echo 'export PATH="/usr/local/sbin:$PATH"' >> ~/.bash_profile
+
 echo "Run `mackup restore` after DropBox has done syncing"
 
 #read -p "Hit enter to run [OSX for Hackers] script..." c
