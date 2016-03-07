@@ -29,7 +29,6 @@ brews=(
   nvm
   rbenv
   ruby-build
-  nom
   jq
   wget
   elasticsearch
