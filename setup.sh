@@ -56,8 +56,7 @@ casks=(
 )
 
 gems=(
-  git-up
-  bundle
+  bundler
 )
 
 npms=(
