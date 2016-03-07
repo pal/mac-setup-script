@@ -4,7 +4,6 @@ use_fish=false
 
 brews=(
   bash
-  brew-cask
   clib
   gpg
   htop
