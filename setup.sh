@@ -168,12 +168,12 @@ fi
 export HOMEBREW_NO_AUTO_UPDATE=1
 
 echo "Install important software ..."
-brew tap caskroom/versions
+brew tap homebrew/cask-versions
 install 'brew cask install' "${important_casks[@]}"
 
 prompt "Install packages"
 install 'brew_install_or_upgrade' "${brews[@]}"
-brew link --overwrite ruby
+#brew link --overwrite ruby
 
 prompt "Set git defaults"
 for config in "${git_configs[@]}"
