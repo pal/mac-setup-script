@@ -172,7 +172,7 @@ brew tap homebrew/cask-versions
 install 'brew cask install' "${important_casks[@]}"
 
 prompt "Install packages"
-install 'brew_install_or_upgrade' "${brews[@]}"
+install 'brew install' "${brews[@]}"
 #brew link --overwrite ruby
 
 prompt "Set git defaults"
@@ -201,12 +201,12 @@ then
   curl -L https://github.com/oh-my-fish/oh-my-fish/raw/master/bin/install | fish
   install 'omf install' ${omfs[@]}
 
-  echo "Installing ruby ..."
-  brew install ruby-install chruby chruby-fish
-  ruby-install ruby
-  echo "source /usr/local/share/chruby/chruby.fish" >> ~/.config/fish/config.fish
-  echo "source /usr/local/share/chruby/auto.fish" >> ~/.config/fish/config.fish
-  ruby -v
+#  echo "Installing ruby ..."
+#  brew install ruby-install chruby chruby-fish
+#  ruby-install ruby
+#  echo "source /usr/local/share/chruby/chruby.fish" >> ~/.config/fish/config.fish
+#  echo "source /usr/local/share/chruby/auto.fish" >> ~/.config/fish/config.fish
+#  ruby -v
 fi
 
 echo "
