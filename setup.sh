@@ -45,20 +45,26 @@ casks=(
 )
 
 brews=(
+  amazon-workspaces
+  android-studio
   awscli
   bash
   bash-completion@2
   cocoapods
   dart-lang/dart/dart
+  discord
   fastlane
+  figma
   fish
   fzf
   git
   go
   gradle
   jq
+  logitech-presentation
   mackup
   mas
+  microsoft-teams
   node
   nvm
   openjdk
@@ -69,6 +75,12 @@ brews=(
   ruby
   wget
   yarn
+  zoomus
+
+  #Games
+  battle-net
+  epic-games
+  steam
 )
 
 mas=(
@@ -273,5 +285,10 @@ prompt "Cleanup"
 brew cleanup
 brew cask cleanup
 
+# Create my common folders
+mkdir ~/dev
+
+
 echo "Run [mackup restore] after DropBox has done syncing to get dotfiles"
+echo "Run [git_setup.sh] to fetch all you need to start coding!"
 echo "Done!"
