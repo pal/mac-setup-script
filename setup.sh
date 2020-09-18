@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 
-use_fish=false
+use_fish=true
 use_bash=true
+
+# sources for homebrew
+taps=(
+  dart-lang/dart
+  github/gh
+  homebrew/bundle
+  homebrew/cask
+  homebrew/cask-fonts
+  homebrew/cask-versions
+  homebrew/core
+)
 
 # Install some stuff before others!
 important_casks=(
@@ -11,6 +22,8 @@ important_casks=(
   google-chrome
   tunnelblick
   visual-studio-code
+  aws-vault
+  paw
 )
 
 casks=(
@@ -18,14 +31,14 @@ casks=(
   # java
   # steam #WIN
   # telegram #MAS
+  # battlenet
+  # epic installer
+  # falcon-sql-client
+  # nosql-workbench-for-amazon-dynamodb
   firefox
-  font-eb-garamond
-  font-input
-  font-open-sans
-  font-open-sans-condensed
-  font-source-code-pro
   google-drive-file-stream
   slack
+  skype
   spotify
   transmit
   transmission
@@ -33,13 +46,24 @@ casks=(
 
 brews=(
   awscli
+  bash
+  bash-completion@2
+  cocoapods
+  dart-lang/dart/dart
+  fastlane
   fish
   fzf
   git
+  go
+  gradle
+  jq
   mackup
   mas
   node
+  nvm
+  openjdk
   openssl
+  openssl@1.1
   python
   python3
   ruby
@@ -48,39 +72,58 @@ brews=(
 )
 
 mas=(
-  # 497799835 Xcode (11.1)
-  405580712 #StuffIt Expander (15.0.7)
-  406056744 #Evernote (7.13)
-  407963104 #Pixelmator (3.8.6)
-  409183694 #Keynote (9.2)
-  409201541 #Pages (8.2)
-  409203825 #Numbers (6.2)
-  441258766 #Magnet (2.4.4)
-  747648890 #Telegram (5.7)
+  497799835 # Xcode (11.1)
+  405580712 # StuffIt Expander (15.0.7)
+  406056744 # Evernote (7.13)
+  407963104 # Pixelmator (3.8.6)
+  409183694 # Keynote (9.2)
+  409201541 # Pages (8.2)
+  409203825 # Numbers (6.2)
+  441258766 # Magnet (2.4.4)
+  747648890 # Telegram (5.7)
+  439623248 # iA Writer Classic
+  1470584107 # Dato
+  1294126402 # HEIC Converter
 )
 
 gems=(
-  # bundler
+  bundler
 )
 
 npms=(
+  #@aws-amplify/cli@4.26.1-flutter-preview.0
+  #serverless
+  #sls-dev-tools
   npx
-  serverless
   standard
 )
 
+# not using this anymore, now syncing using VSCode and my Github account
 vscode=(
+  adpyke.vscode-sql-formatter
   bierner.github-markdown-preview
   bierner.markdown-checkbox
   bierner.markdown-emoji
   bierner.markdown-preview-github-styles
+  bierner.markdown-yaml-preamble
+  blaxou.freezed
   bungcip.better-toml
   chenxsan.vscode-standardjs
-  orta.vscode-jest
-  tyriar.sort-lines
+  Dart-Code.dart-code
+  Dart-Code.flutter
+  formulahendry.code-runner
+  golang.go
+  mathiasfrohlich.Kotlin
+  matt-meyers.vscode-dbml
+  mechatroner.rainbow-csv
+  Nash.awesome-flutter-snippets
+  redhat.vscode-yaml
+  skyapps.fish-vscode
+  ThreadHeap.serverless-ide-vscode
+  Tyriar.sort-lines
+  WallabyJs.quokka-vscode
 )
 
-git_email='pal@subtree.se'
 git_configs=(
   "branch.autoSetupRebase always"
   "color.ui auto"
@@ -92,7 +135,7 @@ git_configs=(
   "rebase.autostash true"
   "rerere.autoUpdate true"
   "rerere.enabled true"
-  "user.email ${git_email}"
+  "user.email pal@subtree.se"
   "user.name Pål Brattberg"
 )
 
@@ -101,6 +144,7 @@ fonts=(
   font-eb-garamond
   font-fira-code
   font-input
+  font-inter
   font-open-sans
   font-open-sans-condensed
   font-source-code-pro
@@ -168,7 +212,7 @@ fi
 export HOMEBREW_NO_AUTO_UPDATE=1
 
 echo "Install important software ..."
-brew tap homebrew/cask-versions
+install 'brew tap' "${taps[@]}"
 install 'brew cask install' "${important_casks[@]}"
 
 prompt "Install packages"
@@ -200,13 +244,6 @@ then
   chsh -s $(which fish)
   curl -L https://github.com/oh-my-fish/oh-my-fish/raw/master/bin/install | fish
   install 'omf install' ${omfs[@]}
-
-#  echo "Installing ruby ..."
-#  brew install ruby-install chruby chruby-fish
-#  ruby-install ruby
-#  echo "source /usr/local/share/chruby/chruby.fish" >> ~/.config/fish/config.fish
-#  echo "source /usr/local/share/chruby/auto.fish" >> ~/.config/fish/config.fish
-#  ruby -v
 fi
 
 echo "
@@ -220,10 +257,10 @@ prompt "Install software"
 install 'brew cask install' "${casks[@]}"
 
 prompt "Install secondary packages"
-# install 'gem install' "${gems[@]}"
+install 'gem install' "${gems[@]}"
 install 'npm install --global' "${npms[@]}"
 install 'code --install-extension' "${vscode[@]}"
-brew tap caskroom/fonts
+
 install 'brew cask install' "${fonts[@]}"
 install 'mas install' "${mas[@]}"
 
@@ -236,5 +273,5 @@ prompt "Cleanup"
 brew cleanup
 brew cask cleanup
 
-echo "Run [mackup restore] after DropBox has done syncing ..."
+echo "Run [mackup restore] after DropBox has done syncing to get dotfiles"
 echo "Done!"
