@@ -37,11 +37,12 @@ casks=(
   # nosql-workbench-for-amazon-dynamodb
   firefox
   google-drive-file-stream
-  slack
+  oracle-jdk
   skype
+  slack
   spotify
-  transmit
   transmission
+  transmit
 )
 
 brews=(
