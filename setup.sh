@@ -23,6 +23,7 @@ important_casks=(
   tunnelblick
   visual-studio-code
   aws-vault
+  notion
   paw
 )
 
