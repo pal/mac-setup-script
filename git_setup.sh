@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Download and setup all repos needed for development
-ROOT=~/dev3
+ROOT=~/dev
 
 mkdir $ROOT
 cd $ROOT
