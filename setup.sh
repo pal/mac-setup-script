@@ -214,7 +214,8 @@ fi
 
 if test ! "$(command -v brew)"; then
   prompt "Install Homebrew"
-  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+#  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 else
   if [[ -z "${CI}" ]]; then
     prompt "Update Homebrew"
