@@ -228,7 +228,7 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 
 echo "Install important software ..."
 install 'brew tap' "${taps[@]}"
-install 'brew cask install' "${important_casks[@]}"
+install 'brew install --cask' "${important_casks[@]}"
 
 prompt "Install packages"
 install 'brew install' "${brews[@]}"
@@ -269,14 +269,14 @@ export EDITOR=code
 " >> ~/.bash_profile
 
 prompt "Install software"
-install 'brew cask install' "${casks[@]}"
+install 'brew install --cask' "${casks[@]}"
 
 prompt "Install secondary packages"
 install 'gem install' "${gems[@]}"
 install 'npm install --global' "${npms[@]}"
 install 'code --install-extension' "${vscode[@]}"
 
-install 'brew cask install' "${fonts[@]}"
+install 'brew install --cask' "${fonts[@]}"
 install 'mas install' "${mas[@]}"
 
 if [[ -z "${CI}" ]]; then
