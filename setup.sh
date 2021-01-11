@@ -17,7 +17,7 @@ taps=(
 # Install some stuff before others!
 important_casks=(
   1password
-  alfred
+  # alfred
   dropbox
   google-chrome
   tunnelblick
@@ -36,22 +36,22 @@ casks=(
   # epic installer
   # falcon-sql-client
   # nosql-workbench-for-amazon-dynamodb
-  firefox
+  # firefox
   google-drive-file-stream
-  oracle-jdk
-  skype
+  # oracle-jdk
+  # skype
   slack
   spotify
-  transmission
-  transmit
+  # transmission
+  # transmit
 )
 
 brews=(
-  amazon-workspaces
+  # amazon-workspaces
   android-studio
   awscli
   bash
-  bash-completion@2
+  # bash-completion@2
   cocoapods
   dart-lang/dart/dart
   discord
@@ -61,41 +61,41 @@ brews=(
   fzf
   git
   go
-  gradle
+  # gradle
   jq
-  logitech-presentation
+  # logitech-presentation
   mackup
   mas
   microsoft-teams
   node
-  nvm
-  openjdk
+  # nvm
+  # openjdk
   openssl
   openssl@1.1
   python
-  python3
-  ruby
+  # python3
+  # ruby
   wget
   yarn
   zoomus
 
   #Games
-  battle-net
-  epic-games
-  steam
+  # battle-net
+  # epic-games
+  # steam
 )
 
 mas=(
   497799835 # Xcode (11.1)
   405580712 # StuffIt Expander (15.0.7)
   406056744 # Evernote (7.13)
-  407963104 # Pixelmator (3.8.6)
+  # 407963104 # Pixelmator (3.8.6)
   409183694 # Keynote (9.2)
   409201541 # Pages (8.2)
   409203825 # Numbers (6.2)
   441258766 # Magnet (2.4.4)
   747648890 # Telegram (5.7)
-  439623248 # iA Writer Classic
+  # 439623248 # iA Writer Classic
   1470584107 # Dato
   1294126402 # HEIC Converter
 )
@@ -135,7 +135,7 @@ vscode=(
   skyapps.fish-vscode
   ThreadHeap.serverless-ide-vscode
   Tyriar.sort-lines
-  WallabyJs.quokka-vscode
+  # WallabyJs.quokka-vscode
 )
 
 git_configs=(
@@ -166,13 +166,15 @@ fonts=(
 )
 
 ######################################## End of app list ########################################
-set +e
-set -x
+#set +e # don't stop on error
+set -e # stop on any error
+set -x # show debug
 
 function prompt {
-  if [[ -z "${CI}" ]]; then
-    read -p "Hit Enter to $1 ..."
-  fi
+  # if [[ -z "${CI}" ]]; then
+  #   read -p "Hit Enter to $1 ..."
+  # fi
+  echo "$1"
 }
 
 function install {
@@ -274,7 +276,7 @@ install 'brew install --cask' "${casks[@]}"
 prompt "Install secondary packages"
 install 'gem install' "${gems[@]}"
 install 'npm install --global' "${npms[@]}"
-install 'code --install-extension' "${vscode[@]}"
+# install 'code --install-extension' "${vscode[@]}"
 
 install 'brew install --cask' "${fonts[@]}"
 install 'mas install' "${mas[@]}"
