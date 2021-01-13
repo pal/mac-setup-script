@@ -61,7 +61,7 @@ brews=(
   fzf
   git
   go
-  # gradle
+  gradle
   jq
   # logitech-presentation
   mackup
@@ -69,7 +69,7 @@ brews=(
   microsoft-teams
   node
   # nvm
-  # openjdk
+  openjdk
   openssl
   openssl@1.1
   python
@@ -78,6 +78,7 @@ brews=(
   wget
   yarn
   zoomus
+  serverless
 
   #Games
   # battle-net
