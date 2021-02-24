@@ -77,7 +77,7 @@ brews=(
   # ruby
   wget
   yarn
-  zoomus
+  zoom
   serverless
 
   #Games
