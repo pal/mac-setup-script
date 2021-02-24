@@ -37,7 +37,7 @@ casks=(
   # falcon-sql-client
   # nosql-workbench-for-amazon-dynamodb
   # firefox
-  google-drive-file-stream
+  google-drive
   # oracle-jdk
   # skype
   slack
