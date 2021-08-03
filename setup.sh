@@ -49,6 +49,7 @@ casks=(
 brews=(
   # amazon-workspaces
   android-studio
+  asdf
   awscli
   bash
   # bash-completion@2
