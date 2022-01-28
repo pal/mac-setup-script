@@ -5,19 +5,33 @@ set -e # stop on any error
 set -x # show debug
 
 echo "Install XCode CLI Tool"
-xcode-select --install
-sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-sudo xcodebuild -runFirstLaunch
+if type xcode-select >&- && xpath=$( xcode-select --print-path ) &&
+  test -d "${xpath}" && test -x "${xpath}" ; then
+echo "Xcode is installed ok" 
+else
+echo "Xcode is NOT installed ok" 
+#  xcode-select --install
+#  sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+#  sudo xcodebuild -runFirstLaunch
+fi
+
+# Needed for compatibility in M1 Mac
+sudo softwareupdate --install-rosetta --agree-to-license
 
 echo "Install Homebrew"
 if test ! $(which brew); then
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/pal/.zprofile
+  eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 brew update
 echo "Install Homebrew Packages"
 brew tap homebrew/bundle
 brew bundle
 brew doctor
+
+# Accept xcode license
+sudo xcodebuild -license accept
 
 echo "Set git defaults"
 git_configs=(
@@ -90,7 +104,8 @@ brew cask cleanup
 mkdir ~/dev
 
 # restore settings from iCloud (if this bugs out, allow time for iCloud sync)
-mackup restore
+cp /Users/pal/Library/Mobile\ Documents/com\~apple\~CloudDocs/Mackup/.mackup.cfg ~/
+mackup restore --force
 
 echo "Run [git_setup.sh] to fetch all you need to start coding!"
 echo "Done!"
