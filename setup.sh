@@ -30,6 +30,8 @@ brew tap homebrew/bundle
 brew bundle
 brew doctor
 
+brew link cocoapods
+
 # Accept xcode license
 sudo xcodebuild -license accept
 
@@ -80,19 +82,26 @@ install 'omf install' ${omfs[@]}
 
 echo "Install newer versions of dev languages"
 
-touch ~/.zshrc 
+# touch ~/.zshrc 
 
 # Add ruby
-echo 'frum init | source' > ~/.config/fish/conf.d/frum.fish
-echo 'eval "$(frum init)"' >> ~/.zshrc
-echo 'eval "$(frum init)"' >> ~/.bashrc
-frum init
-frum install 3.1.0
-frum global 3.1.0
+# echo 'frum init | source' > ~/.config/fish/conf.d/frum.fish
+# echo 'eval "$(frum init)"' >> ~/.zshrc
+# echo 'eval "$(frum init)"' >> ~/.bashrc
+# frum init
+# frum install 3.1.0
+# frum global 3.1.0
 
-# Add node
-nvm install lts/fermium
-nvm alias default lts/fermium
+# create ssh key
+ssh-keygen -t ed25519 -C "pal@subtree.se"
+eval "$(ssh-agent -s)"
+ssh-add -K ~/.ssh/id_rsa
+
+# Add node using nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+nvm install lts/hydrogen
+nvm alias default lts/hydrogen
+nvm install 20
 nvm use default
 
 # cleanup

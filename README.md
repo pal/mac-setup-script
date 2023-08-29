@@ -10,9 +10,14 @@ curl -sL https://raw.githubusercontent.com/pal/mac-setup-script/master/git-setup
 
 To prepare for leaving (reinstalling) a computer, first make sure you've updated ``setup.sh`` with all used apps, gathered a list of current brews using ``brew bundle dump``, looked over your install apps to see if any are missing, made sure the list of repos in ``~/dev/`` is described in ``git_setup.sh`` and that you have run ``mackup backup``.
 
-If, for some reason, you want to install only from the Brewfile, simple install Homebrew and run: 
+If, for some reason, you want to install only from the Brewfile, simply install Homebrew and run: 
 ```
 curl -sL https://raw.githubusercontent.com/pal/mac-setup-script/master/Brewfile
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" 
 brew bundle
 ```
+
+# 100% Manual for now
+https://getdarkmatter.dev/
+https://paw.cloud/
+https://dynobase.dev/
