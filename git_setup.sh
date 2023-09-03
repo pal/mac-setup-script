@@ -8,7 +8,7 @@ cd $ROOT
 
 # Peasy & related repos
 git clone --single-branch --branch master git@github.com:pal/peasy.git peasy-master
-git clone --single-branch --branch v2 git@github.com:pal/peasy.git peasy
+git clone --single-branch --branch planetscale git@github.com:pal/peasy.git peasy
 git clone git@github.com:pal/frankfurter.git
 git clone git@github.com:pal/peasy_client.git
 git clone git@github.com:pal/subtree-apple-certs.git
@@ -34,7 +34,6 @@ git clone git@github.com:subtree/koppla.com.git
 # Other repos
 git clone git@github.com:pal/mac-setup-script.git
 git clone git@github.com:pal/fler-policies.git
-git clone git@github.com:pal/leetcode.git
 git clone git@github.com:pal/leetcode.git
 git clone git@github.com:pal/palbrattberg.com.git
 git clone git@github.com:pal/skylead-reporter.git

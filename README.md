@@ -21,3 +21,8 @@ brew bundle
 https://getdarkmatter.dev/
 https://paw.cloud/
 https://dynobase.dev/
+
+# Now what?
+Open each application once to make sure it's configured.
+
+Dropbox - select folders to sync. 
