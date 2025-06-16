@@ -11,33 +11,23 @@ git clone --single-branch --branch master git@github.com:pal/peasy.git peasy-mas
 git clone --single-branch --branch planetscale git@github.com:pal/peasy.git peasy
 git clone git@github.com:pal/frankfurter.git
 git clone git@github.com:pal/peasy_client.git
-git clone git@github.com:pal/subtree-apple-certs.git
-git clone git@github.com:subtree/peasy-api-docs.git
-# git clone git@github.com:pal/peasy-intranet.git
-# git clone git@github.com:pal/peasy-utils.git
-# git clone git@github.com:pal/peasy_backoffice.git
-# git clone git@github.com:pal/peasy_backoffice_basic.git
-# git clone git@github.com:pal/peasy_mobile.git
-# git clone git@github.com:pal/subtree-backoffice.git
-# git clone https://github.com/flutter/flutter.git
+git clone git@github.com:pal/peasyv3.git
+git clone git@github.com:subtree/peasy-ui.git
 
-# Other Subtree repos
-git clone git@github.com:pal/auth-astro.git
-git clone git@github.com:pal/auth-astro-sqlite.git
-git clone git@github.com:pal/sample-names-for-services.git
-git clone git@github.com:poqoi/backend.poqoi.com.git
-git clone git@github.com:poqoi/poqoi.com.git
-git clone git@github.com:poqoi/public-api.git
-git clone git@github.com:subtree/jujino.git
-git clone git@github.com:subtree/koppla.com.git
+# Subtree repos
+git clone git@github.com:subtree/saas-template.git
+git clone git@github.com:subtree/template-magic-board.git
+git clone git@github.com:subtree/setup-hosting.git
+git clone git@github.com:subtree/companynamemaker.com.git
+git clone git@github.com:subtree/juniormarketer.ai.git
+git clone git@github.com:subtree/social-image-creator.git
+git clone git@github.com:subtree/saas-template-upptime.git
+git clone git@github.com:subtree/subtree-sites.git
+git clone https://github.com/subtree/subtree.se.git
+git clone https://github.com/subtree/jujino.com.git
+git clone git@github.com:subtree/julafton.com.git
 
-# Other repos
-git clone git@github.com:pal/mac-setup-script.git
-git clone git@github.com:pal/fler-policies.git
-git clone git@github.com:pal/leetcode.git
-git clone git@github.com:pal/palbrattberg.com.git
-git clone git@github.com:pal/skylead-reporter.git
-
+# Personal projects
 # git clone git@github.com:exchangeratesapi/exchangeratesapi.git
 # git clone git@github.com:pal/Paw-DigestAuthDynamicValue.git
 # git clone git@github.com:pal/datalib.git
@@ -47,6 +37,23 @@ git clone git@github.com:pal/skylead-reporter.git
 # git clone git@github.com:pal/orders-in-mysql.git
 # git clone git@github.com:pal/playbook-template.git
 # git clone git@github.com:pal/simple-counter-server.git
+git clone git@github.com:pal/mac-setup-script.git
+git clone git@github.com:pal/palbrattberg.com.git
+git clone git@github.com:pal/ai-pres.git
+git clone git@github.com:pal/deep-research.git
+git clone https://github.com/pal/domainchecker.git
+git clone https://github.com/pal/mousegame.git
+
+# Infrastructure & Tools
+git clone https://github.com/subtree/k8s-hosting.git
+git clone git@github.com:typemill/typemill.git
+git clone git@github.com:requarks/wiki.git
+git clone git@github.com:stackblitz-labs/bolt.diy.git
+git clone git@github.com:toolbeam/opencontrol.git
+
+# Other projects
+git clone git@github.com:WeDoProducts/productvoice.git
+git clone git@github.com:Shpigford/covid-containment.git
 
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 sudo xcodebuild -runFirstLaunch

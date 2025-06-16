@@ -16,13 +16,7 @@ curl -sL https://raw.githubusercontent.com/pal/mac-setup-script/master/Brewfile
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" 
 brew bundle
 ```
-
-# 100% Manual for now
-https://getdarkmatter.dev/
-https://paw.cloud/
-https://dynobase.dev/
-
 # Now what?
 Open each application once to make sure it's configured.
 
-Dropbox - select folders to sync. 
+Dropbox - select folders to sync.
