@@ -2,8 +2,14 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# Update this whenever making any changes to the script
-SCRIPT_VERSION="1.0.3"
+# IMPORTANT: Version Update Rule
+# =============================
+# Every time this script is modified, the SCRIPT_VERSION must be incremented:
+# - First number (1): Major version - breaking changes
+# - Second number (0): Minor version - new features
+# - Third number (4): Patch version - bug fixes and improvements
+# Example: After fixing a bug, increment the last number: 1.0.3 -> 1.0.4
+SCRIPT_VERSION="1.0.4"
 
 log(){
   if command -v gum &>/dev/null; then
@@ -120,15 +126,22 @@ mas_install(){
     open -a "App Store"
     
     # Wait for user to sign in
-    while ! mas account &>/dev/null; do
+    while true; do
       read -p "Press Enter once you've signed in to the App Store (or type 'skip' to skip MAS installations): " input
+      
       if [[ "$input" == "skip" ]]; then
         log "Skipping Mac App Store installations..."
         return 0
       fi
+      
+      # Check if user is now signed in
+      if mas account &>/dev/null; then
+        log "✅ Successfully signed in to Mac App Store"
+        break
+      else
+        log "❌ Not signed in yet. Please sign in to the App Store and try again."
+      fi
     done
-    
-    log "✅ Successfully signed in to Mac App Store"
   fi
   
   declare -A APPS=(
