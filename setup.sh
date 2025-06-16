@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.16"
+SCRIPT_VERSION="1.0.17"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -141,43 +141,41 @@ mas_install(){
     log "✅ Successfully signed in to Mac App Store"
   fi
   
-  declare -A APPS=(
-    [Dato]=1470584107
-    ["HEIC Converter"]=1294126402
-    [Keynote]=409183694
-    [Magnet]=441258766
-    ["Microsoft Excel"]=462058435
-    ["Microsoft OneNote"]=784801555
-    ["Microsoft Outlook"]=985367838
-    ["Microsoft PowerPoint"]=462062816
-    ["Microsoft To Do"]=1274495053
-    ["Microsoft Word"]=462054704
-    [Numbers]=409203825
-    [OneDrive]=823766827
-    [Pages]=409201541
-    ["Pixelmator Pro"]=1289583905
-    [TestFlight]=899247664
-    [Valheim]=1554294918
-    [Xcode]=497799835
-  )
-  
+  # Define apps as a string to avoid issues with spaces in names
+  APPS_STR="Dato:1470584107
+HEIC Converter:1294126402
+Keynote:409183694
+Magnet:441258766
+Microsoft Excel:462058435
+Microsoft OneNote:784801555
+Microsoft Outlook:985367838
+Microsoft PowerPoint:462062816
+Microsoft To Do:1274495053
+Microsoft Word:462054704
+Numbers:409203825
+OneDrive:823766827
+Pages:409201541
+Pixelmator Pro:1289583905
+TestFlight:899247664
+Valheim:1554294918
+Xcode:497799835"
+
   # Get list of installed apps once
   INSTALLED_APPS=$(mas list 2>/dev/null || echo "")
   
   # Count total apps to install
   total_apps=0
-  for name in "${!APPS[@]}"; do
-    id="${APPS[$name]}"
+  while IFS=: read -r name id; do
     if ! echo "$INSTALLED_APPS" | grep -q " $id "; then
       ((total_apps++))
     fi
-  done
+  done <<< "$APPS_STR"
+  
   log "Found $total_apps apps to install"
   
   # Install apps with progress
   current=0
-  for name in "${!APPS[@]}"; do
-    id="${APPS[$name]}"
+  while IFS=: read -r name id; do
     if ! echo "$INSTALLED_APPS" | grep -q " $id "; then
       ((current++))
       log "Installing $name... ($current/$total_apps)"
@@ -185,7 +183,7 @@ mas_install(){
         log "Failed to install $name"
       fi
     fi
-  done
+  done <<< "$APPS_STR"
 }
 
 set_names(){
@@ -229,8 +227,22 @@ configure_defaults(){
 setup_fish(){
   log "🐟 Setting up Fish shell..."
   local shell_path="$BREW_PREFIX/bin/fish"
+  
+  # Add fish to /etc/shells if not already there
   grep -q "$shell_path" /etc/shells || echo "$shell_path" | sudo tee -a /etc/shells
-  [[ "$SHELL" == *fish ]] || chsh -s "$shell_path"
+  
+  # Create fish config directory if it doesn't exist
+  mkdir -p ~/.config/fish
+  
+  # Add Homebrew to fish config if not already there
+  if ! grep -q "brew shellenv" ~/.config/fish/config.fish 2>/dev/null; then
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.config/fish/config.fish
+  fi
+  
+  # Change shell to fish if not already set
+  if [[ "$SHELL" != *fish ]]; then
+    chsh -s "$shell_path"
+  fi
 }
 
 ghostty_config(){
