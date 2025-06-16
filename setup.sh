@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.12"
+SCRIPT_VERSION="1.0.13"
 
 log(){
   if command -v gum &>/dev/null; then
@@ -92,6 +92,11 @@ install_homebrew(){
     fi
   fi
   eval "$(brew shellenv)"
+}
+
+accept_xcode_license(){
+  log "📝 Accepting Xcode license..."
+  sudo xcodebuild -license accept
 }
 
 brew_bundle(){
@@ -413,6 +418,7 @@ main(){
   prevent_sleep
   install_xcode_clt
   install_homebrew
+  accept_xcode_license
   brew_bundle
   mas_install
   set_names
