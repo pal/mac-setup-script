@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.15"
+SCRIPT_VERSION="1.0.16"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -161,11 +161,14 @@ mas_install(){
     [Xcode]=497799835
   )
   
+  # Get list of installed apps once
+  INSTALLED_APPS=$(mas list 2>/dev/null || echo "")
+  
   # Count total apps to install
   total_apps=0
   for name in "${!APPS[@]}"; do
     id="${APPS[$name]}"
-    if ! mas list | grep -q " $id "; then
+    if ! echo "$INSTALLED_APPS" | grep -q " $id "; then
       ((total_apps++))
     fi
   done
@@ -175,7 +178,7 @@ mas_install(){
   current=0
   for name in "${!APPS[@]}"; do
     id="${APPS[$name]}"
-    if ! mas list | grep -q " $id "; then
+    if ! echo "$INSTALLED_APPS" | grep -q " $id "; then
       ((current++))
       log "Installing $name... ($current/$total_apps)"
       if ! mas install "$id"; then
