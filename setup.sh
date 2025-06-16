@@ -3,7 +3,7 @@ set -e
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.19"
+SCRIPT_VERSION="1.0.20"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -64,89 +64,101 @@ fi
 
 install_xcode_clt(){
   log "📦 Installing Xcode Command Line Tools..."
-  if ! xcode-select -p &>/dev/null; then
-    if ! xcode-select --install; then
-      error "Failed to install Xcode Command Line Tools"
+  if xcode-select -p &>/dev/null; then
+    log "Xcode Command Line Tools already installed"
+    return 0
+  fi
+  
+  if ! xcode-select --install; then
+    error "Failed to install Xcode Command Line Tools"
+    return 1
+  fi
+  until xcode-select -p &>/dev/null; do 
+    sleep 20
+    if ! pgrep -q "Install Command Line Tools"; then
+      error "Xcode Command Line Tools installation failed"
       return 1
     fi
-    until xcode-select -p &>/dev/null; do 
-      sleep 20
-      if ! pgrep -q "Install Command Line Tools"; then
-        error "Xcode Command Line Tools installation failed"
-        return 1
-      fi
-    done
-  fi
+  done
 }
 
 install_homebrew(){
   log "🍺 Installing Homebrew..."
-  if ! command -v brew &>/dev/null; then
-    if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
-      error "Failed to install Homebrew"
-      return 1
-    fi
-    
-    # Verify Homebrew installation and set up environment
-    if [[ -f "$BREW_PREFIX/bin/brew" ]]; then
-      # Add Homebrew to PATH for all shells
-      for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
-        if [[ -f "$shell_config" ]]; then
-          if ! grep -q "brew shellenv" "$shell_config"; then
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$shell_config" || error "Failed to update $shell_config"
-          fi
-        fi
-      done
-      # Source the environment for current shell
-      eval "$($BREW_PREFIX/bin/brew shellenv)" || error "Failed to source Homebrew environment"
-    elif [[ -f "/usr/local/bin/brew" ]]; then
-      BREW_PREFIX="/usr/local"
-      # Add Homebrew to PATH for all shells
-      for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
-        if [[ -f "$shell_config" ]]; then
-          if ! grep -q "brew shellenv" "$shell_config"; then
-            echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$shell_config" || error "Failed to update $shell_config"
-          fi
-        fi
-      done
-      # Source the environment for current shell
-      eval "$($BREW_PREFIX/bin/brew shellenv)" || error "Failed to source Homebrew environment"
-    else
-      error "Homebrew installation failed - could not find brew executable"
-      return 1
-    fi
-    
-    # Verify Homebrew is working
-    if ! brew doctor &>/dev/null; then
-      log "Homebrew installation may have issues - please run 'brew doctor' for details"
-    fi
+  if command -v brew &>/dev/null; then
+    log "Homebrew already installed"
+    eval "$(brew shellenv)" || error "Failed to source Homebrew environment"
+    return 0
   fi
-  eval "$(brew shellenv)" || error "Failed to source Homebrew environment"
+  
+  if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+    error "Failed to install Homebrew"
+    return 1
+  fi
+  
+  # Verify Homebrew installation and set up environment
+  if [[ -f "$BREW_PREFIX/bin/brew" ]]; then
+    # Add Homebrew to PATH for all shells
+    for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
+      if [[ -f "$shell_config" ]]; then
+        if ! grep -q "brew shellenv" "$shell_config"; then
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$shell_config" || error "Failed to update $shell_config"
+        fi
+      fi
+    done
+    # Source the environment for current shell
+    eval "$($BREW_PREFIX/bin/brew shellenv)" || error "Failed to source Homebrew environment"
+  elif [[ -f "/usr/local/bin/brew" ]]; then
+    BREW_PREFIX="/usr/local"
+    # Add Homebrew to PATH for all shells
+    for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
+      if [[ -f "$shell_config" ]]; then
+        if ! grep -q "brew shellenv" "$shell_config"; then
+          echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$shell_config" || error "Failed to update $shell_config"
+        fi
+      fi
+    done
+    # Source the environment for current shell
+    eval "$($BREW_PREFIX/bin/brew shellenv)" || error "Failed to source Homebrew environment"
+  else
+    error "Homebrew installation failed - could not find brew executable"
+    return 1
+  fi
+  
+  # Verify Homebrew is working
+  if ! brew doctor &>/dev/null; then
+    log "Homebrew installation may have issues - please run 'brew doctor' for details"
+  fi
 }
 
 accept_xcode_license(){
   log "📝 Accepting Xcode license..."
-  sudo xcodebuild -license accept
+  if xcodebuild -license check &>/dev/null; then
+    log "Xcode license already accepted"
+    return 0
+  fi
+  sudo xcodebuild -license accept || error "Failed to accept Xcode license"
 }
 
 brew_bundle(){
   log "📦 Installing Homebrew packages and casks..."
   BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
   BREW_CASKS=(1password aws-vault beekeeper-studio cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
+  
   for f in "${BREW_PKGS[@]}"; do 
-    if ! brew list "$f" &>/dev/null; then
-      log "Installing package: $f"
-      brew install "$f"
-    else
+    if brew list "$f" &>/dev/null; then
       log "Package already installed: $f"
+    else
+      log "Installing package: $f"
+      brew install "$f" || error "Failed to install $f"
     fi
   done
+  
   for c in "${BREW_CASKS[@]}"; do 
-    if ! brew list --cask "$c" &>/dev/null; then
-      log "Installing cask: $c"
-      brew install --cask "$c"
-    else
+    if brew list --cask "$c" &>/dev/null; then
       log "Cask already installed: $c"
+    else
+      log "Installing cask: $c"
+      brew install --cask "$c" || error "Failed to install $c"
     fi
   done
 }
@@ -198,6 +210,11 @@ Xcode:497799835"
     fi
   done <<< "$APPS_STR"
   
+  if [ $total_apps -eq 0 ]; then
+    log "All Mac App Store applications are already installed"
+    return 0
+  fi
+  
   log "Found $total_apps apps to install"
   
   # Install apps with progress
@@ -207,7 +224,7 @@ Xcode:497799835"
       ((current++))
       log "Installing $name... ($current/$total_apps)"
       if ! mas install "$id"; then
-        log "Failed to install $name"
+        error "Failed to install $name"
       fi
     fi
   done <<< "$APPS_STR"
@@ -216,37 +233,51 @@ Xcode:497799835"
 set_names(){
   log "🏷️  Setting system names..."
   local HOST="pal-brattberg-macbookpro"
-  scutil --set ComputerName "$HOST"
-  scutil --set HostName "$HOST"
-  scutil --set LocalHostName "$HOST"
-  sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "$HOST"
+  local current_name=$(scutil --get ComputerName 2>/dev/null)
+  
+  if [[ "$current_name" == "$HOST" ]]; then
+    log "System names already set correctly"
+    return 0
+  fi
+  
+  scutil --set ComputerName "$HOST" || error "Failed to set ComputerName"
+  scutil --set HostName "$HOST" || error "Failed to set HostName"
+  scutil --set LocalHostName "$HOST" || error "Failed to set LocalHostName"
+  sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "$HOST" || error "Failed to set NetBIOSName"
 }
 
 configure_defaults(){
   log "⚙️  Configuring system defaults..."
-  defaults write NSGlobalDomain AppleLanguages -array "en"
-  defaults write NSGlobalDomain AppleLocale -string "sv_SE"
-  defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters"
-  sudo systemsetup -settimezone "Europe/Stockholm" > /dev/null
+  # Check if defaults are already set
+  if defaults read NSGlobalDomain AppleLanguages &>/dev/null && 
+     defaults read NSGlobalDomain AppleLocale &>/dev/null; then
+    log "System defaults already configured"
+    return 0
+  fi
+  
+  defaults write NSGlobalDomain AppleLanguages -array "en" || error "Failed to set AppleLanguages"
+  defaults write NSGlobalDomain AppleLocale -string "sv_SE" || error "Failed to set AppleLocale"
+  defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters" || error "Failed to set AppleMeasurementUnits"
+  sudo systemsetup -settimezone "Europe/Stockholm" > /dev/null || error "Failed to set timezone"
 
-  defaults write -g NSAutomaticCapitalizationEnabled -bool false
-  defaults write -g NSAutomaticDashSubstitutionEnabled -bool false
-  defaults write -g NSAutomaticPeriodSubstitutionEnabled -bool false
-  defaults write -g NSAutomaticQuoteSubstitutionEnabled -bool false
-  defaults write -g NSAutomaticSpellingCorrectionEnabled -bool false
-  defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
-  defaults write NSGlobalDomain KeyRepeat -int 2
-  defaults write NSGlobalDomain InitialKeyRepeat -int 15
+  defaults write -g NSAutomaticCapitalizationEnabled -bool false || error "Failed to set NSAutomaticCapitalizationEnabled"
+  defaults write -g NSAutomaticDashSubstitutionEnabled -bool false || error "Failed to set NSAutomaticDashSubstitutionEnabled"
+  defaults write -g NSAutomaticPeriodSubstitutionEnabled -bool false || error "Failed to set NSAutomaticPeriodSubstitutionEnabled"
+  defaults write -g NSAutomaticQuoteSubstitutionEnabled -bool false || error "Failed to set NSAutomaticQuoteSubstitutionEnabled"
+  defaults write -g NSAutomaticSpellingCorrectionEnabled -bool false || error "Failed to set NSAutomaticSpellingCorrectionEnabled"
+  defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false || error "Failed to set ApplePressAndHoldEnabled"
+  defaults write NSGlobalDomain KeyRepeat -int 2 || error "Failed to set KeyRepeat"
+  defaults write NSGlobalDomain InitialKeyRepeat -int 15 || error "Failed to set InitialKeyRepeat"
 
-  defaults write com.apple.finder AppleShowAllFiles -bool true
-  defaults write NSGlobalDomain AppleShowAllExtensions -bool true
-  defaults write com.apple.finder ShowStatusBar -bool true
-  defaults write com.apple.finder ShowPathbar -bool true
-  defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
-  defaults write com.apple.finder _FXDefaultSearchScope -string "SCcf"
-  chflags nohidden ~/Library
-  sudo chflags nohidden /Volumes
-  defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+  defaults write com.apple.finder AppleShowAllFiles -bool true || error "Failed to set AppleShowAllFiles"
+  defaults write NSGlobalDomain AppleShowAllExtensions -bool true || error "Failed to set AppleShowAllExtensions"
+  defaults write com.apple.finder ShowStatusBar -bool true || error "Failed to set ShowStatusBar"
+  defaults write com.apple.finder ShowPathbar -bool true || error "Failed to set ShowPathbar"
+  defaults write com.apple.finder _FXShowPosixPathInTitle -bool true || error "Failed to set _FXShowPosixPathInTitle"
+  defaults write com.apple.finder _FXDefaultSearchScope -string "SCcf" || error "Failed to set _FXDefaultSearchScope"
+  chflags nohidden ~/Library || error "Failed to unhide Library"
+  sudo chflags nohidden /Volumes || error "Failed to unhide Volumes"
+  defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv" || error "Failed to set FXPreferredViewStyle"
 
   killall Finder || true
 }
@@ -255,27 +286,39 @@ setup_fish(){
   log "🐟 Setting up Fish shell..."
   local shell_path="$BREW_PREFIX/bin/fish"
   
+  # Check if fish is already set up
+  if [[ "$SHELL" == *fish ]] && grep -q "$shell_path" /etc/shells 2>/dev/null; then
+    log "Fish shell already set up"
+    return 0
+  fi
+  
   # Add fish to /etc/shells if not already there
-  grep -q "$shell_path" /etc/shells || echo "$shell_path" | sudo tee -a /etc/shells
+  grep -q "$shell_path" /etc/shells || echo "$shell_path" | sudo tee -a /etc/shells || error "Failed to add fish to /etc/shells"
   
   # Create fish config directory if it doesn't exist
-  mkdir -p ~/.config/fish
+  mkdir -p ~/.config/fish || error "Failed to create fish config directory"
   
   # Add Homebrew to fish config if not already there
   if ! grep -q "brew shellenv" ~/.config/fish/config.fish 2>/dev/null; then
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.config/fish/config.fish
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.config/fish/config.fish || error "Failed to update fish config"
   fi
   
   # Change shell to fish if not already set
   if [[ "$SHELL" != *fish ]]; then
-    chsh -s "$shell_path"
+    chsh -s "$shell_path" || error "Failed to change shell to fish"
   fi
 }
 
 ghostty_config(){
   log "🖥️  Configuring Ghostty terminal..."
-  mkdir -p ~/Library/Application\ Support/Ghostty
-  cat > ~/Library/Application\ Support/Ghostty/ghostty.toml <<'EOF'
+  # Check if config already exists
+  if [[ -f ~/Library/Application\ Support/Ghostty/ghostty.toml ]]; then
+    log "Ghostty configuration already exists"
+    return 0
+  fi
+  
+  mkdir -p ~/Library/Application\ Support/Ghostty || error "Failed to create Ghostty config directory"
+  cat > ~/Library/Application\ Support/Ghostty/ghostty.toml <<'EOF' || error "Failed to write Ghostty config"
 theme = "Mathias"
 font-family = "GeistMono NF"
 font-size = 11
@@ -291,28 +334,38 @@ EOF
 
 configure_git(){
   log "🔧 Configuring Git..."
-  git config --global branch.autoSetupRebase always
-  git config --global branch.autoSetupMerge always
-  git config --global color.ui auto
-  git config --global core.autocrlf input
-  git config --global core.editor code
-  git config --global credential.helper osxkeychain
-  git config --global pull.rebase true
-  git config --global push.default simple
-  git config --global rebase.autostash true
-  git config --global rerere.autoUpdate true
-  git config --global rerere.enabled true
-  git config --global user.email "pal@subtree.se"
-  git config --global user.name "Pål Brattberg"
+  # Check if git is already configured
+  if git config --global user.email &>/dev/null && git config --global user.name &>/dev/null; then
+    log "Git already configured"
+    return 0
+  fi
+  
+  git config --global branch.autoSetupRebase always || error "Failed to set branch.autoSetupRebase"
+  git config --global branch.autoSetupMerge always || error "Failed to set branch.autoSetupMerge"
+  git config --global color.ui auto || error "Failed to set color.ui"
+  git config --global core.autocrlf input || error "Failed to set core.autocrlf"
+  git config --global core.editor code || error "Failed to set core.editor"
+  git config --global credential.helper osxkeychain || error "Failed to set credential.helper"
+  git config --global pull.rebase true || error "Failed to set pull.rebase"
+  git config --global push.default simple || error "Failed to set push.default"
+  git config --global rebase.autostash true || error "Failed to set rebase.autostash"
+  git config --global rerere.autoUpdate true || error "Failed to set rerere.autoUpdate"
+  git config --global rerere.enabled true || error "Failed to set rerere.enabled"
+  git config --global user.email "pal@subtree.se" || error "Failed to set user.email"
+  git config --global user.name "Pål Brattberg" || error "Failed to set user.name"
 }
 
 install_nvm_node(){
   log "🟢 Installing Node.js and NVM..."
-  if [[ ! -d "$HOME/.nvm" ]]; then
-    if ! curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash; then
-      log "Failed to install NVM"
-      return 1
-    fi
+  # Check if NVM is already installed
+  if [[ -d "$HOME/.nvm" ]]; then
+    log "NVM already installed"
+    return 0
+  fi
+  
+  if ! curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash; then
+    error "Failed to install NVM"
+    return 1
   fi
   
   export NVM_DIR="$HOME/.nvm"
@@ -320,17 +373,17 @@ install_nvm_node(){
   if [[ -s "$NVM_DIR/nvm.sh" ]]; then
     . "$NVM_DIR/nvm.sh"
   else
-    log "NVM installation appears to be incomplete"
+    error "NVM installation appears to be incomplete"
     return 1
   fi
   
   if ! nvm install --lts; then
-    log "Failed to install Node.js LTS"
+    error "Failed to install Node.js LTS"
     return 1
   fi
   
   if ! nvm alias default "lts/*"; then
-    log "Failed to set default Node.js version"
+    error "Failed to set default Node.js version"
     return 1
   fi
 }
@@ -339,35 +392,31 @@ setup_ssh_keys(){
   log "🔑 Setting up SSH keys for GitHub..."
   
   # Check if SSH key exists
-  if [[ ! -f ~/.ssh/id_ed25519 ]]; then
-    log "Generating new SSH key..."
-    ssh-keygen -t ed25519 -C "pal@subtree.se" -f ~/.ssh/id_ed25519 -N ""
-    
-    # Start ssh-agent
-    eval "$(ssh-agent -s)"
-    ssh-add ~/.ssh/id_ed25519
-    
-    # Display public key for user to add to GitHub
-    log "Please add this SSH key to your GitHub account:"
-    cat ~/.ssh/id_ed25519.pub
-    log "Press Enter once you've added the key to GitHub..."
-    read -r
+  if [[ -f ~/.ssh/id_ed25519 ]]; then
+    log "SSH key already exists"
+    return 0
   fi
   
-  # Test GitHub SSH connection
-  if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
-    log "⚠️  SSH connection to GitHub failed. Please ensure your SSH key is added to GitHub."
-    log "You can add your key at: https://github.com/settings/keys"
-    log "Press Enter once you've added the key to GitHub..."
-    read -r
-  fi
+  log "Generating new SSH key..."
+  ssh-keygen -t ed25519 -C "pal@subtree.se" -f ~/.ssh/id_ed25519 -N "" || error "Failed to generate SSH key"
+  
+  # Start ssh-agent
+  eval "$(ssh-agent -s)" || error "Failed to start ssh-agent"
+  ssh-add ~/.ssh/id_ed25519 || error "Failed to add SSH key to ssh-agent"
+  
+  # Display public key for user to add to GitHub
+  log "Please add this SSH key to your GitHub account:"
+  cat ~/.ssh/id_ed25519.pub
+  log "Press Enter once you've added the key to GitHub..."
+  read -r
 }
 
 clone_repos(){
   log "📚 Cloning development repositories..."
   local BASE=~/dev
-  mkdir -p "$BASE"
-  cd "$BASE"
+  mkdir -p "$BASE" || error "Failed to create dev directory"
+  cd "$BASE" || error "Failed to change to dev directory"
+  
   declare -A REPOS=(
     [peasy-master]=git@github.com:pal/peasy.git#master
     [peasy]=git@github.com:pal/peasy.git#planetscale
@@ -398,25 +447,36 @@ clone_repos(){
     [productvoice]=git@github.com:WeDoProducts/productvoice.git
     [covid-containment]=git@github.com:Shpigford/covid-containment.git
   )
+  
   for dir in "${!REPOS[@]}"; do
+    if [[ -d "$dir" ]]; then
+      log "Repository already exists: $dir"
+      continue
+    fi
+    
     url_branch="${REPOS[$dir]}"
     url=${url_branch%%#*}
     branch=${url_branch#*#}
     [[ "$branch" == "$url_branch" ]] && branch=""
-    if [[ ! -d $dir ]]; then
-      if [[ -n $branch ]]; then
-        git clone --single-branch --branch "$branch" "$url" "$dir"
-      else
-        git clone "$url" "$dir"
-      fi
+    
+    if [[ -n $branch ]]; then
+      git clone --single-branch --branch "$branch" "$url" "$dir" || error "Failed to clone $dir"
+    else
+      git clone "$url" "$dir" || error "Failed to clone $dir"
     fi
   done
 }
 
 mackup_config(){
   log "💾 Configuring Mackup backup..."
-  mkdir -p ~/.mackup
-  cat > ~/.mackup.cfg <<'EOF'
+  # Check if config already exists
+  if [[ -f ~/.mackup.cfg ]]; then
+    log "Mackup configuration already exists"
+    return 0
+  fi
+  
+  mkdir -p ~/.mackup || error "Failed to create Mackup directory"
+  cat > ~/.mackup.cfg <<'EOF' || error "Failed to write Mackup config"
 [storage]
 engine = iCloud Drive
 EOF
