@@ -59,7 +59,6 @@ install_homebrew(){
 brew_bundle(){
   BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
   BREW_CASKS=(1password aws-vault beekeeper-studio cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geistmono-nf ghostty google-chrome orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
-  brew tap homebrew/cask-fonts
   for f in "${BREW_PKGS[@]}"; do brew list "$f" &>/dev/null || brew install "$f"; done
   for c in "${BREW_CASKS[@]}"; do brew list --cask "$c" &>/dev/null || brew install --cask "$c"; done
 }
