@@ -33,11 +33,8 @@ if ! command -v brew &> /dev/null; then
 fi
 brew update
 echo "Install Homebrew Packages"
-brew tap homebrew/bundle
 brew bundle
 brew doctor
-
-brew link cocoapods
 
 # Accept xcode license
 sudo xcodebuild -license accept
@@ -70,16 +67,6 @@ do
   git config --global ${config}
 done
 
-
-echo "Upgrade bash"
-brew install bash bash-completion2 fzf
-sudo bash -c "echo $(brew --prefix)/bin/bash >> /private/etc/shells"
-#sudo chsh -s "$(brew --prefix)"/bin/bash
-# Install https://github.com/twolfson/sexy-bash-echo
-touch ~/.bash_profile #see https://github.com/twolfson/sexy-bash-echo/issues/51
-(cd /tmp && git clone --depth 1 --config core.autocrlf=false https://github.com/twolfson/sexy-bash-echo && cd sexy-bash-echo && make install) && source ~/.bashrc
-
-
 echo "Setting up fish shell ..."
 brew install fish
 echo $(which fish) | sudo tee -a /etc/shells
@@ -87,32 +74,34 @@ chsh -s $(which fish)
 curl -L https://github.com/oh-my-fish/oh-my-fish/raw/master/bin/install | fish
 install 'omf install' ${omfs[@]}
 
-echo "Install newer versions of dev languages"
-
-# touch ~/.zshrc 
-
-# Add ruby
-# echo 'frum init | source' > ~/.config/fish/conf.d/frum.fish
-# echo 'eval "$(frum init)"' >> ~/.zshrc
-# echo 'eval "$(frum init)"' >> ~/.bashrc
-# frum init
-# frum install 3.1.0
-# frum global 3.1.0
 
 # create ssh key if it doesn't exist
 if [[ ! -f ~/.ssh/id_ed25519 ]]; then
+  mkdir -p ~/.ssh
+  chmod 700 ~/.ssh
   ssh-keygen -t ed25519 -C "pal@subtree.se"
-  eval "$(ssh-agent -s)"
-  ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+  
+  # Start ssh-agent if not running
+  if ! pgrep -x "ssh-agent" > /dev/null; then
+    eval "$(ssh-agent -s)"
+  fi
+  
+  # Add key to ssh-agent and verify
+  if ssh-add --apple-use-keychain ~/.ssh/id_ed25519; then
+    echo "SSH key successfully added to ssh-agent"
+  else
+    echo "Failed to add SSH key to ssh-agent"
+    exit 1
+  fi
 fi
 
 # Add node using nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm install lts/hydrogen
-nvm alias default lts/hydrogen
-nvm install 20
+nvm install lts
+nvm alias default lts
+nvm install 24
 nvm use default
 
 # cleanup
