@@ -22,6 +22,16 @@ need_cmd(){
   command -v "$1" &>/dev/null || { log "missing $1"; return 1; }
 }
 
+# ---- Intro banner ---------------------------------------------------------
+log "⭐  mac-setup-script ⭐"
+log "This script will prepare a new Mac: Xcode, Homebrew, apps, defaults, repos, etc." \
+    "\nYou'll be asked for your administrator password once so the script can run commands that require sudo.\n" \
+    "After that it runs unattended — feel free to grab a coffee.\n"
+
+# --------------------------------------------------------------------------
+
+# Request sudo up-front with context for the user
+log "🔑  Requesting sudo — please enter your macOS password if prompted."
 sudo -v
 while true; do sudo -n true; sleep 60; kill -0 "$BASHPID" || exit; done 2>/dev/null &
 
