@@ -39,31 +39,73 @@ ARCH=$(uname -m)
 BREW_PREFIX="/opt/homebrew"
 [[ "$ARCH" == "i386" || "$ARCH" == "x86_64" ]] && BREW_PREFIX="/usr/local"
 
+# Install Rosetta 2 if on Apple Silicon
+if [[ "$ARCH" == "arm64" ]]; then
+  log "Installing Rosetta 2..."
+  if ! /usr/bin/pgrep -q oahd; then
+    sudo softwareupdate --install-rosetta --agree-to-license
+  fi
+fi
+
 install_xcode_clt(){
   if ! xcode-select -p &>/dev/null; then
     log "Installing Xcode Command Line Tools…"
-    xcode-select --install || true
-    until xcode-select -p &>/dev/null; do sleep 20; done
+    if ! xcode-select --install; then
+      log "Failed to install Xcode Command Line Tools"
+      return 1
+    fi
+    until xcode-select -p &>/dev/null; do 
+      sleep 20
+      if ! pgrep -q "Install Command Line Tools"; then
+        log "Xcode Command Line Tools installation failed"
+        return 1
+      fi
+    done
   fi
 }
 
 install_homebrew(){
   if ! command -v brew &>/dev/null; then
     log "Installing Homebrew…"
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$($BREW_PREFIX/bin/brew shellenv)"
+    if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+      log "Failed to install Homebrew"
+      return 1
+    fi
+    
+    # Verify Homebrew installation and set up environment
+    if [[ -f "$BREW_PREFIX/bin/brew" ]]; then
+      eval "$($BREW_PREFIX/bin/brew shellenv)"
+    elif [[ -f "/usr/local/bin/brew" ]]; then
+      BREW_PREFIX="/usr/local"
+      eval "$($BREW_PREFIX/bin/brew shellenv)"
+    else
+      log "Homebrew installation failed - could not find brew executable"
+      return 1
+    fi
+    
+    # Verify Homebrew is working
+    if ! brew doctor &>/dev/null; then
+      log "Homebrew installation may have issues - please run 'brew doctor' for details"
+    fi
   fi
   eval "$(brew shellenv)"
 }
 
 brew_bundle(){
   BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
-  BREW_CASKS=(1password aws-vault beekeeper-studio cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geistmono-nf ghostty google-chrome orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
+  BREW_CASKS=(1password aws-vault beekeeper-studio cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
   for f in "${BREW_PKGS[@]}"; do brew list "$f" &>/dev/null || brew install "$f"; done
   for c in "${BREW_CASKS[@]}"; do brew list --cask "$c" &>/dev/null || brew install --cask "$c"; done
 }
 
 mas_install(){
+  # Check if user is signed into Mac App Store
+  if ! mas account &>/dev/null; then
+    log "Please sign in to the Mac App Store first"
+    open -a "App Store"
+    read -p "Press Enter once you've signed in to the App Store..."
+  fi
+  
   declare -A APPS=(
     [Dato]=1470584107
     ["HEIC Converter"]=1294126402
@@ -83,9 +125,15 @@ mas_install(){
     [Valheim]=1554294918
     [Xcode]=497799835
   )
+  
   for name in "${!APPS[@]}"; do
     id="${APPS[$name]}"
-    mas list | grep -q " $id " || mas install "$id" || true
+    if ! mas list | grep -q " $id "; then
+      log "Installing $name..."
+      if ! mas install "$id"; then
+        log "Failed to install $name"
+      fi
+    fi
   done
 }
 
@@ -165,13 +213,32 @@ configure_git(){
 
 install_nvm_node(){
   if [[ ! -d "$HOME/.nvm" ]]; then
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    log "Installing NVM..."
+    if ! curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash; then
+      log "Failed to install NVM"
+      return 1
+    fi
   fi
+  
   export NVM_DIR="$HOME/.nvm"
   # shellcheck disable=SC1090
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-  nvm install --lts
-  nvm alias default "lts/*"
+  if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+    . "$NVM_DIR/nvm.sh"
+  else
+    log "NVM installation appears to be incomplete"
+    return 1
+  fi
+  
+  log "Installing Node.js LTS..."
+  if ! nvm install --lts; then
+    log "Failed to install Node.js LTS"
+    return 1
+  fi
+  
+  if ! nvm alias default "lts/*"; then
+    log "Failed to set default Node.js version"
+    return 1
+  fi
 }
 
 clone_repos(){
