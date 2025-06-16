@@ -13,6 +13,8 @@ This document outlines the complete setup process for a new Mac, serving as a re
 - Prefer bash as scripting language and prefer keeping everything in one file.
 - Require all user interaction (such as `sudo`) to be done up-front if possible.
 
+Run using `bash -c "$(curl -fsSL https://raw.githubusercontent.com/pal/mac-setup-script/main/newsetup.sh)"`
+
 ## Prerequisites
 
 - Xcode Command Line Tools
