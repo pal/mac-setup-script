@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.7"
+SCRIPT_VERSION="1.0.9"
 
 log(){
   if command -v gum &>/dev/null; then
@@ -354,7 +354,23 @@ post_install(){
   log "Post-installation steps:\n1. Open and sign in to required apps.\n2. Configure Dropbox selective sync.\n3. Accept Xcode licence (sudo xcodebuild -license accept)."
 }
 
+prevent_sleep(){
+  log "💤 Preventing system sleep during installation..."
+  caffeinate -i &
+  CAFFEINATE_PID=$!
+  # Set up trap to restore sleep on script exit
+  trap 'restore_sleep' EXIT
+}
+
+restore_sleep(){
+  if [[ -n "${CAFFEINATE_PID:-}" ]]; then
+    log "💤 Restoring normal sleep settings..."
+    kill $CAFFEINATE_PID 2>/dev/null || true
+  fi
+}
+
 main(){
+  prevent_sleep
   install_xcode_clt
   install_homebrew
   brew_bundle
