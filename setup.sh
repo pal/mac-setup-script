@@ -3,7 +3,7 @@ set -e
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.21"
+SCRIPT_VERSION="1.0.22"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -206,9 +206,11 @@ Xcode:497799835"
   
   # Count total apps to install
   total_apps=0
+  apps_to_install=()
   while IFS=: read -r name id; do
     if ! echo "$INSTALLED_APPS" | grep -q " $id "; then
       ((total_apps++))
+      apps_to_install+=("$name:$id")
     fi
   done <<< "$APPS_STR"
   
@@ -221,15 +223,14 @@ Xcode:497799835"
   
   # Install apps with progress
   current=0
-  while IFS=: read -r name id; do
-    if ! echo "$INSTALLED_APPS" | grep -q " $id "; then
-      ((current++))
-      log "Installing $name (ID: $id)... ($current/$total_apps)"
-      if ! mas install "$id" 2>&1; then
-        error "Failed to install $name (ID: $id)"
-      fi
+  for app in "${apps_to_install[@]}"; do
+    IFS=: read -r name id <<< "$app"
+    ((current++))
+    log "Installing $name (ID: $id)... ($current/$total_apps)"
+    if ! mas install "$id" 2>&1; then
+      error "Failed to install $name (ID: $id)"
     fi
-  done <<< "$APPS_STR"
+  done
 }
 
 set_names(){

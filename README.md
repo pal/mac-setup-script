@@ -7,7 +7,7 @@ Run using `curl -sL https://raw.githubusercontent.com/pal/mac-setup-script/maste
 setup.sh | bash`
 
 Or if it's cached, use this:
-`curl -sL -H "Accept: application/vnd.github.v3.raw" "https://raw.githubusercontent.com/pal/mac-setup-script/master/setup.sh?t=$(date +%s)" | bash`
+`curl -sL "https://raw.githubusercontent.com/pal/mac-setup-script/master/setup.sh?t=$(date +%s)" | bash`
 
 
 
