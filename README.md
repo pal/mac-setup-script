@@ -1,6 +1,10 @@
-# Mac Setup Requirements
+# New Mac Setup
 
-This document outlines the complete setup process for a new Mac, serving as a requirements document for implementation.
+Here's a script that will setup a new Mac with all the tools and apps I use.
+
+
+Run using `bash -c "$(curl -fsSL https://raw.githubusercontent.com/pal/mac-setup-script/main/setup.sh)"`
+
 
 ## Non-functional requirements
 
@@ -13,7 +17,6 @@ This document outlines the complete setup process for a new Mac, serving as a re
 - Prefer bash as scripting language and prefer keeping everything in one file.
 - Require all user interaction (such as `sudo`) to be done up-front if possible.
 
-Run using `bash -c "$(curl -fsSL https://raw.githubusercontent.com/pal/mac-setup-script/main/newsetup.sh)"`
 
 ## Prerequisites
 

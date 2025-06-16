@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.9"
+SCRIPT_VERSION="1.0.10"
 
 log(){
   if command -v gum &>/dev/null; then

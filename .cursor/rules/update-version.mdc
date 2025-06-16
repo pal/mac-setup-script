@@ -1,6 +1,6 @@
 ---
 description: 
-globs: newsetup.sh
+globs: setup.sh
 alwaysApply: false
 ---
 # IMPORTANT: Version Update Rule
