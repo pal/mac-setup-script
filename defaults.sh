@@ -4,7 +4,11 @@
 # Adapted from https://github.com/mathiasbynens/dotfiles/blob/master/.macos
 # Customized for Swedish locale with English UI preferences
 
-set -x
+set -e # stop on any error
+set -x # show debug
+
+# Set computer name
+COMPUTER_NAME="pal-brattberg-macbookpro"
 
 if [[ -z "${CI}" ]]; then
   sudo -v # Ask for the administrator password upfront
@@ -17,16 +21,16 @@ fi
 ###############################################################################
 
 # Close any open System Preferences panes, to prevent them from overriding settings we're about to change
-osascript -e 'tell application "System Preferences" to quit'
+osascript -e 'tell application "System Settings" to quit' || osascript -e 'tell application "System Preferences" to quit'
 
 # Disable the sound effects on boot
 sudo nvram SystemAudioVolume=" "
 
 # Set computer name (as done via System Preferences → Sharing)
-#sudo scutil --set ComputerName "pal-peasy-mbp"
-#sudo scutil --set HostName "pal-peasy-mbp"
-#sudo scutil --set LocalHostName "pal-peasy-mbp"
-#sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "pal-peasy-mbp"
+sudo scutil --set ComputerName "${COMPUTER_NAME}"
+sudo scutil --set HostName "${COMPUTER_NAME}"
+sudo scutil --set LocalHostName "${COMPUTER_NAME}"
+sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "${COMPUTER_NAME}"
 
 # Disable transparency in the menu bar and elsewhere
 defaults write com.apple.universalaccess reduceTransparency -bool true
@@ -126,7 +130,7 @@ defaults write com.apple.finder OpenWindowForNewRemovableDisk -bool true
 defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 
 # Expand the following File Info panes:
-# “General”, “Open with”, and “Sharing & Permissions”
+# "General", "Open with", and "Sharing & Permissions"
 defaults write com.apple.finder FXInfoPanesExpanded -dict \
 	General -bool true \
 	OpenWith -bool true \
@@ -172,7 +176,7 @@ defaults write com.apple.finder FXInfoPanesExpanded -dict \
 # sudo rm /private/var/vm/sleepimage
 # Create a zero-byte file instead…
 # sudo touch /private/var/vm/sleepimage
-# …and make sure it can’t be rewritten
+# …and make sure it can't be rewritten
 # sudo chflags uchg /private/var/vm/sleepimage
 
 ###############################################################################
@@ -303,12 +307,12 @@ chflags nohidden ~/Library
 # Show the /Volumes folder
 sudo chflags nohidden /Volumes
 
-# Remove Dropbox’s green checkmark icons in Finder
+# Remove Dropbox's green checkmark icons in Finder
 # file=/Applications/Dropbox.app/Contents/Resources/emblem-dropbox-uptodate.icns
 # [ -e "${file}" ] && mv -f "${file}" "${file}.bak"
 
 # Expand the following File Info panes:
-# “General”, “Open with”, and “Sharing & Permissions”
+# "General", "Open with", and "Sharing & Permissions"
 # defaults write com.apple.finder FXInfoPanesExpanded -dict \
 # 	General -bool true \
 # 	OpenWith -bool true \
@@ -327,7 +331,7 @@ sudo chflags nohidden /Volumes
 # Change minimize/maximize window effect
 # defaults write com.apple.dock mineffect -string "scale"
 
-# Minimize windows into their application’s icon
+# Minimize windows into their application's icon
 # defaults write com.apple.dock minimize-to-application -bool true
 
 # Enable spring loading for all Dock items
@@ -342,23 +346,23 @@ defaults write com.apple.dock persistent-apps -array
 # Show only open applications in the Dock
 # #defaults write com.apple.dock static-only -bool true
 
-# Don’t animate opening applications from the Dock
+# Don't animate opening applications from the Dock
 # defaults write com.apple.dock launchanim -bool false
 
 # Speed up Mission Control animations
 defaults write com.apple.dock expose-animation-duration -float 0.1
 
-# Don’t group windows by application in Mission Control
+# Don't group windows by application in Mission Control
 # (i.e. use the old Exposé behavior instead)
 # defaults write com.apple.dock expose-group-by-app -bool false
 
 # Disable Dashboard
 # defaults write com.apple.dashboard mcx-disabled -bool true
 
-# Don’t show Dashboard as a Space
+# Don't show Dashboard as a Space
 # defaults write com.apple.dock dashboard-in-overlay -bool true
 
-# Don’t automatically rearrange Spaces based on most recent use
+# Don't automatically rearrange Spaces based on most recent use
 # defaults write com.apple.dock mru-spaces -bool false
 
 # Remove the auto-hiding Dock delay
@@ -439,16 +443,16 @@ defaults write com.apple.Safari AutoOpenSafeDownloads -bool false
 # Allow hitting the Backspace key to go to the previous page in history
 defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2BackspaceKeyNavigationEnabled -bool true
 
-# Hide Safari’s bookmarks bar by default
+# Hide Safari's bookmarks bar by default
 # defaults write com.apple.Safari ShowFavoritesBar -bool false
 
-# Hide Safari’s sidebar in Top Sites
+# Hide Safari's sidebar in Top Sites
 # defaults write com.apple.Safari ShowSidebarInTopSites -bool false
 
-# Disable Safari’s thumbnail cache for History and Top Sites
+# Disable Safari's thumbnail cache for History and Top Sites
 # defaults write com.apple.Safari DebugSnapshotsUpdatePolicy -int 2
 
-# Enable Safari’s debug menu
+# Enable Safari's debug menu
 defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
 
 # Make Safari's search banners default to Contains instead of Starts With

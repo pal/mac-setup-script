@@ -5,24 +5,31 @@ set -e # stop on any error
 set -x # show debug
 
 echo "Install XCode CLI Tool"
-if type xcode-select >&- && xpath=$( xcode-select --print-path ) &&
-  test -d "${xpath}" && test -x "${xpath}" ; then
-echo "Xcode is installed ok" 
-else
-echo "Xcode is NOT installed ok" 
-#  xcode-select --install
-#  sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-#  sudo xcodebuild -runFirstLaunch
+if ! xcode-select -p &> /dev/null; then
+  echo "Installing Xcode Command Line Tools..."
+  xcode-select --install
+  # Wait for installation to complete
+  while ! xcode-select -p &> /dev/null; do
+    sleep 1
+  done
 fi
 
-# Needed for compatibility in M1 Mac
-sudo softwareupdate --install-rosetta --agree-to-license
+# Only install Rosetta if on Apple Silicon
+if [[ $(uname -m) == 'arm64' ]]; then
+  echo "Installing Rosetta 2..."
+  sudo softwareupdate --install-rosetta --agree-to-license
+fi
 
 echo "Install Homebrew"
-if test ! $(which brew); then
-  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/pal/.zprofile
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+if ! command -v brew &> /dev/null; then
+  echo "Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  
+  # Add Homebrew to PATH for Apple Silicon
+  if [[ -d /opt/homebrew ]]; then
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  fi
 fi
 brew update
 echo "Install Homebrew Packages"
@@ -92,13 +99,17 @@ echo "Install newer versions of dev languages"
 # frum install 3.1.0
 # frum global 3.1.0
 
-# create ssh key
-ssh-keygen -t ed25519 -C "pal@subtree.se"
-eval "$(ssh-agent -s)"
-ssh-add -K ~/.ssh/id_rsa
+# create ssh key if it doesn't exist
+if [[ ! -f ~/.ssh/id_ed25519 ]]; then
+  ssh-keygen -t ed25519 -C "pal@subtree.se"
+  eval "$(ssh-agent -s)"
+  ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+fi
 
 # Add node using nvm
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 nvm install lts/hydrogen
 nvm alias default lts/hydrogen
 nvm install 20
@@ -109,12 +120,16 @@ echo "Cleanup"
 brew cleanup
 brew cask cleanup
 
-# Create my dev folder
-mkdir ~/dev
+# Create dev folder
+mkdir -p ~/dev
 
 # restore settings from iCloud (if this bugs out, allow time for iCloud sync)
-cp /Users/pal/Library/Mobile\ Documents/com\~apple\~CloudDocs/Mackup/.mackup.cfg ~/
-mackup restore --force
+if [[ -f "/Users/pal/Library/Mobile Documents/com~apple~CloudDocs/Mackup/.mackup.cfg" ]]; then
+  cp "/Users/pal/Library/Mobile Documents/com~apple~CloudDocs/Mackup/.mackup.cfg" ~/
+  mackup restore --force
+else
+  echo "Error: Mackup config file not found in iCloud"
+fi
 
 echo "Run [git_setup.sh] to fetch all you need to start coding!"
 echo "Done!"

@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
+set -e # stop on any error
+set -x # show debug
+
 # Download and setup all repos needed for development
 ROOT=~/dev
 
-mkdir $ROOT
+mkdir -p $ROOT
 cd $ROOT
 
 # Peasy & related repos
@@ -55,10 +58,10 @@ git clone git@github.com:toolbeam/opencontrol.git
 git clone git@github.com:WeDoProducts/productvoice.git
 git clone git@github.com:Shpigford/covid-containment.git
 
-sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-sudo xcodebuild -runFirstLaunch
-
-# flutter precache
-# flutter doctor
+# Setup Xcode if installed
+if [[ -d "/Applications/Xcode.app" ]]; then
+  sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+  sudo xcodebuild -runFirstLaunch
+fi
 
 echo "All done, hack away! 👨‍💻"
