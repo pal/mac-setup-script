@@ -3,7 +3,10 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.14"
+SCRIPT_VERSION="1.0.15"
+
+# Record start time
+START_TIME=$(date +%s)
 
 log(){
   if command -v gum &>/dev/null; then
@@ -134,6 +137,8 @@ mas_install(){
     # Open App Store
     open -a "App Store"
     return
+  else
+    log "✅ Successfully signed in to Mac App Store"
   fi
   
   declare -A APPS=(
@@ -164,6 +169,7 @@ mas_install(){
       ((total_apps++))
     fi
   done
+  log "Found $total_apps apps to install"
   
   # Install apps with progress
   current=0
@@ -410,7 +416,24 @@ main(){
   clone_repos
   mackup_config
   post_install
-  log "Setup complete!"
+  
+  # Calculate and display duration
+  END_TIME=$(date +%s)
+  DURATION=$((END_TIME - START_TIME))
+  HOURS=$((DURATION / 3600))
+  MINUTES=$(( (DURATION % 3600) / 60 ))
+  SECONDS=$((DURATION % 60))
+  
+  DURATION_MSG="Installation took "
+  if [ $HOURS -gt 0 ]; then
+    DURATION_MSG+="${HOURS}h "
+  fi
+  if [ $MINUTES -gt 0 ]; then
+    DURATION_MSG+="${MINUTES}m "
+  fi
+  DURATION_MSG+="${SECONDS}s"
+  
+  log "Setup complete! $DURATION_MSG"
 }
 
 main "$@"
