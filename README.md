@@ -3,9 +3,12 @@
 Here's a script that will setup a new Mac with all the tools and apps I use.
 
 
-Run using `
-curl -sL https://raw.githubusercontent.com/pal/mac-setup-script/master/setup.sh | bash
-`
+Run using `curl -sL https://raw.githubusercontent.com/pal/mac-setup-script/master/
+setup.sh | bash`
+
+Or if it's cached, use this:
+`curl -sL -H "Accept: application/vnd.github.v3.raw" "https://raw.githubusercontent.com/pal/mac-setup-script/master/setup.sh?t=$(date +%s)" | bash`
+
 
 
 ## Non-functional requirements

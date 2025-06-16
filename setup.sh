@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.13"
+SCRIPT_VERSION="1.0.14"
 
 log(){
   if command -v gum &>/dev/null; then
@@ -129,32 +129,11 @@ mas_install(){
     log "⚠️  You need to sign in to the Mac App Store to continue."
     log "1. The App Store will open in a moment"
     log "2. Sign in with your Apple ID"
-    log "3. Return here and press Enter to continue"
-    log "4. If you don't have an Apple ID, you can create one at appleid.apple.com"
-    
-    # Give user time to read the instructions
-    sleep 3
+    log "3. If you don't have an Apple ID, you can create one at appleid.apple.com"
     
     # Open App Store
     open -a "App Store"
-    
-    # Wait for user to sign in
-    while true; do
-      read -p "Press Enter once you've signed in to the App Store (or type 'skip' to skip MAS installations): " input
-      
-      if [[ "$input" == "skip" ]]; then
-        log "Skipping Mac App Store installations..."
-        return 0
-      fi
-      
-      # Check if user is now signed in by attempting to list apps
-      if mas list &>/dev/null; then
-        log "✅ Successfully signed in to Mac App Store"
-        break
-      else
-        log "❌ Not signed in yet. Please sign in to the App Store and try again."
-      fi
-    done
+    return
   fi
   
   declare -A APPS=(
