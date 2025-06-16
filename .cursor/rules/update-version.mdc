@@ -1,0 +1,12 @@
+---
+description: 
+globs: newsetup.sh
+alwaysApply: false
+---
+# IMPORTANT: Version Update Rule
+# =============================
+# Every time newsetup.se is modified, the SCRIPT_VERSION must be incremented:
+# - First number (1): Major version - breaking changes
+# - Second number (0): Minor version - new features
+# - Third number (4): Patch version - bug fixes and improvements
+# Example: After fixing a bug, increment the last number: 1.0.3 -> 1.0.4

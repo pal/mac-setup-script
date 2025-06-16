@@ -2,14 +2,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# IMPORTANT: Version Update Rule
-# =============================
-# Every time this script is modified, the SCRIPT_VERSION must be incremented:
-# - First number (1): Major version - breaking changes
-# - Second number (0): Minor version - new features
-# - Third number (4): Patch version - bug fixes and improvements
-# Example: After fixing a bug, increment the last number: 1.0.3 -> 1.0.4
-SCRIPT_VERSION="1.0.4"
+# Every time this script is modified, the SCRIPT_VERSION must be incremented
+SCRIPT_VERSION="1.0.6"
 
 log(){
   if command -v gum &>/dev/null; then
@@ -111,8 +105,8 @@ brew_bundle(){
 mas_install(){
   log "📱 Installing Mac App Store applications..."
   
-  # Check if user is signed into Mac App Store
-  if ! mas account &>/dev/null; then
+  # Check if user is signed into Mac App Store by attempting to list apps
+  if ! mas list &>/dev/null; then
     log "⚠️  You need to sign in to the Mac App Store to continue."
     log "1. The App Store will open in a moment"
     log "2. Sign in with your Apple ID"
@@ -134,8 +128,8 @@ mas_install(){
         return 0
       fi
       
-      # Check if user is now signed in
-      if mas account &>/dev/null; then
+      # Check if user is now signed in by attempting to list apps
+      if mas list &>/dev/null; then
         log "✅ Successfully signed in to Mac App Store"
         break
       else
