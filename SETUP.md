@@ -2,6 +2,15 @@
 
 This document outlines the complete setup process for a new Mac, serving as a requirements document for implementation.
 
+## Non-functional requirements
+
+- Prefer installation from Mac App Store, second choice Homebrew
+- Use English UI
+- Ensure the order of installation takes dependencies into account (e.g. install Xcode first, then git, then Homebrew etc)
+- Ensure the setup script is idempotent and can be run multiple times without causing issues
+- Ensure the setup script is robust and that errors are handled gracefully and reported
+- Ensure there's a simple way to run the setup script from a brand new Mac, having to do as little as possible to get it working
+
 ## Prerequisites
 
 - Xcode Command Line Tools
