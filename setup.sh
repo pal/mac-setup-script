@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.10"
+SCRIPT_VERSION="1.0.12"
 
 log(){
   if command -v gum &>/dev/null; then
@@ -172,10 +172,22 @@ mas_install(){
     [Xcode]=497799835
   )
   
+  # Count total apps to install
+  total_apps=0
   for name in "${!APPS[@]}"; do
     id="${APPS[$name]}"
     if ! mas list | grep -q " $id "; then
-      log "Installing $name..."
+      ((total_apps++))
+    fi
+  done
+  
+  # Install apps with progress
+  current=0
+  for name in "${!APPS[@]}"; do
+    id="${APPS[$name]}"
+    if ! mas list | grep -q " $id "; then
+      ((current++))
+      log "Installing $name... ($current/$total_apps)"
       if ! mas install "$id"; then
         log "Failed to install $name"
       fi
@@ -291,6 +303,34 @@ install_nvm_node(){
   fi
 }
 
+setup_ssh_keys(){
+  log "🔑 Setting up SSH keys for GitHub..."
+  
+  # Check if SSH key exists
+  if [[ ! -f ~/.ssh/id_ed25519 ]]; then
+    log "Generating new SSH key..."
+    ssh-keygen -t ed25519 -C "pal@subtree.se" -f ~/.ssh/id_ed25519 -N ""
+    
+    # Start ssh-agent
+    eval "$(ssh-agent -s)"
+    ssh-add ~/.ssh/id_ed25519
+    
+    # Display public key for user to add to GitHub
+    log "Please add this SSH key to your GitHub account:"
+    cat ~/.ssh/id_ed25519.pub
+    log "Press Enter once you've added the key to GitHub..."
+    read -r
+  fi
+  
+  # Test GitHub SSH connection
+  if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+    log "⚠️  SSH connection to GitHub failed. Please ensure your SSH key is added to GitHub."
+    log "You can add your key at: https://github.com/settings/keys"
+    log "Press Enter once you've added the key to GitHub..."
+    read -r
+  fi
+}
+
 clone_repos(){
   log "📚 Cloning development repositories..."
   local BASE=~/dev
@@ -381,6 +421,7 @@ main(){
   ghostty_config
   configure_git
   install_nvm_node
+  setup_ssh_keys
   clone_repos
   mackup_config
   post_install
