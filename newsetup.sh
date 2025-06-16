@@ -2,6 +2,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# Update this whenever making any changes to the script
+SCRIPT_VERSION="1.0.2"
+
 log(){
   if command -v gum &>/dev/null; then
     gum style --foreground 212 "$1"
@@ -23,7 +26,7 @@ need_cmd(){
 }
 
 # ---- Intro banner ---------------------------------------------------------
-log "⭐  mac-setup-script ⭐"
+log "⭐  mac-setup-script v$SCRIPT_VERSION ⭐"
 log "This script will prepare a new Mac: Xcode, Homebrew, apps, defaults, repos, etc." \
     "\nYou'll be asked for your administrator password once so the script can run commands that require sudo.\n" \
     "After that it runs unattended — feel free to grab a coffee.\n"
@@ -48,8 +51,8 @@ if [[ "$ARCH" == "arm64" ]]; then
 fi
 
 install_xcode_clt(){
+  log "📦 Installing Xcode Command Line Tools..."
   if ! xcode-select -p &>/dev/null; then
-    log "Installing Xcode Command Line Tools…"
     if ! xcode-select --install; then
       log "Failed to install Xcode Command Line Tools"
       return 1
@@ -65,8 +68,8 @@ install_xcode_clt(){
 }
 
 install_homebrew(){
+  log "🍺 Installing Homebrew..."
   if ! command -v brew &>/dev/null; then
-    log "Installing Homebrew…"
     if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
       log "Failed to install Homebrew"
       return 1
@@ -92,6 +95,7 @@ install_homebrew(){
 }
 
 brew_bundle(){
+  log "📦 Installing Homebrew packages and casks..."
   BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
   BREW_CASKS=(1password aws-vault beekeeper-studio cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
   for f in "${BREW_PKGS[@]}"; do brew list "$f" &>/dev/null || brew install "$f"; done
@@ -99,6 +103,7 @@ brew_bundle(){
 }
 
 mas_install(){
+  log "📱 Installing Mac App Store applications..."
   # Check if user is signed into Mac App Store
   if ! mas account &>/dev/null; then
     log "Please sign in to the Mac App Store first"
@@ -138,6 +143,7 @@ mas_install(){
 }
 
 set_names(){
+  log "🏷️  Setting system names..."
   local HOST="pal-brattberg-macbookpro"
   scutil --set ComputerName "$HOST"
   scutil --set HostName "$HOST"
@@ -146,6 +152,7 @@ set_names(){
 }
 
 configure_defaults(){
+  log "⚙️  Configuring system defaults..."
   defaults write NSGlobalDomain AppleLanguages -array "en"
   defaults write NSGlobalDomain AppleLocale -string "sv_SE"
   defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters"
@@ -174,12 +181,14 @@ configure_defaults(){
 }
 
 setup_fish(){
+  log "🐟 Setting up Fish shell..."
   local shell_path="$BREW_PREFIX/bin/fish"
   grep -q "$shell_path" /etc/shells || echo "$shell_path" | sudo tee -a /etc/shells
   [[ "$SHELL" == *fish ]] || chsh -s "$shell_path"
 }
 
 ghostty_config(){
+  log "🖥️  Configuring Ghostty terminal..."
   mkdir -p ~/Library/Application\ Support/Ghostty
   cat > ~/Library/Application\ Support/Ghostty/ghostty.toml <<'EOF'
 theme = "Mathias"
@@ -196,6 +205,7 @@ EOF
 }
 
 configure_git(){
+  log "🔧 Configuring Git..."
   git config --global branch.autoSetupRebase always
   git config --global branch.autoSetupMerge always
   git config --global color.ui auto
@@ -212,8 +222,8 @@ configure_git(){
 }
 
 install_nvm_node(){
+  log "🟢 Installing Node.js and NVM..."
   if [[ ! -d "$HOME/.nvm" ]]; then
-    log "Installing NVM..."
     if ! curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash; then
       log "Failed to install NVM"
       return 1
@@ -229,7 +239,6 @@ install_nvm_node(){
     return 1
   fi
   
-  log "Installing Node.js LTS..."
   if ! nvm install --lts; then
     log "Failed to install Node.js LTS"
     return 1
@@ -242,6 +251,7 @@ install_nvm_node(){
 }
 
 clone_repos(){
+  log "📚 Cloning development repositories..."
   local BASE=~/dev
   mkdir -p "$BASE"
   cd "$BASE"
@@ -270,8 +280,6 @@ clone_repos(){
     [domainchecker]=https://github.com/pal/domainchecker.git
     [mousegame]=https://github.com/pal/mousegame.git
     [k8s-hosting]=https://github.com/subtree/k8s-hosting.git
-    # [typemill]=git@github.com:typemill/typemill.git
-    # [wiki]=git@github.com:requarks/wiki.git
     [bolt.diy]=git@github.com:stackblitz-labs/bolt.diy.git
     [opencontrol]=git@github.com:toolbeam/opencontrol.git
     [productvoice]=git@github.com:WeDoProducts/productvoice.git
@@ -293,6 +301,7 @@ clone_repos(){
 }
 
 mackup_config(){
+  log "💾 Configuring Mackup backup..."
   mkdir -p ~/.mackup
   cat > ~/.mackup.cfg <<'EOF'
 [storage]
