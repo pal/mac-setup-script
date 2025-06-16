@@ -96,12 +96,26 @@ if [[ ! -f ~/.ssh/id_ed25519 ]]; then
 fi
 
 # Add node using nvm
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash
+if ! command -v nvm &> /dev/null; then
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+fi
+
+# Ensure NVM is loaded
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm install lts
+
+# Install Node.js versions if they don't exist
+if ! nvm ls | grep -q "lts"; then
+  nvm install lts
+fi
+
+if ! nvm ls | grep -q "v24"; then
+  nvm install 24
+fi
+
 nvm alias default lts
-nvm install 24
 nvm use default
 
 # cleanup
