@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Update this whenever making any changes to the script
-SCRIPT_VERSION="1.0.2"
+SCRIPT_VERSION="1.0.3"
 
 log(){
   if command -v gum &>/dev/null; then
@@ -104,11 +104,31 @@ brew_bundle(){
 
 mas_install(){
   log "📱 Installing Mac App Store applications..."
+  
   # Check if user is signed into Mac App Store
   if ! mas account &>/dev/null; then
-    log "Please sign in to the Mac App Store first"
+    log "⚠️  You need to sign in to the Mac App Store to continue."
+    log "1. The App Store will open in a moment"
+    log "2. Sign in with your Apple ID"
+    log "3. Return here and press Enter to continue"
+    log "4. If you don't have an Apple ID, you can create one at appleid.apple.com"
+    
+    # Give user time to read the instructions
+    sleep 3
+    
+    # Open App Store
     open -a "App Store"
-    read -p "Press Enter once you've signed in to the App Store..."
+    
+    # Wait for user to sign in
+    while ! mas account &>/dev/null; do
+      read -p "Press Enter once you've signed in to the App Store (or type 'skip' to skip MAS installations): " input
+      if [[ "$input" == "skip" ]]; then
+        log "Skipping Mac App Store installations..."
+        return 0
+      fi
+    done
+    
+    log "✅ Successfully signed in to Mac App Store"
   fi
   
   declare -A APPS=(
