@@ -3,7 +3,9 @@
 Here's a script that will setup a new Mac with all the tools and apps I use.
 
 
-Run using `bash -c "$(curl -fsSL https://raw.githubusercontent.com/pal/mac-setup-script/main/setup.sh)"`
+Run using `
+curl -sL https://raw.githubusercontent.com/pal/mac-setup-script/master/setup.sh | bash
+`
 
 
 ## Non-functional requirements
