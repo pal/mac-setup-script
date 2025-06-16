@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.17"
+SCRIPT_VERSION="1.0.19"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -16,6 +16,15 @@ log(){
   fi
 }
 
+error(){
+  if command -v gum &>/dev/null; then
+    gum style --foreground 196 "ERROR: $1"
+  else
+    printf "\n\033[31mERROR: %s\033[0m\n" "$1"
+  fi
+  return 1
+}
+
 spin(){
   if command -v gum &>/dev/null; then
     gum spin --spinner dot --title "$1" -- "$2"
@@ -25,7 +34,7 @@ spin(){
 }
 
 need_cmd(){
-  command -v "$1" &>/dev/null || { log "missing $1"; return 1; }
+  command -v "$1" &>/dev/null || { error "missing $1"; return 1; }
 }
 
 # ---- Intro banner ---------------------------------------------------------
@@ -38,7 +47,7 @@ log "This script will prepare a new Mac: Xcode, Homebrew, apps, defaults, repos,
 
 # Request sudo up-front with context for the user
 log "🔑  Requesting sudo — please enter your macOS password if prompted."
-sudo -v
+sudo -v || error "Failed to get sudo access"
 while true; do sudo -n true; sleep 60; kill -0 "$BASHPID" || exit; done 2>/dev/null &
 
 ARCH=$(uname -m)
@@ -49,7 +58,7 @@ BREW_PREFIX="/opt/homebrew"
 if [[ "$ARCH" == "arm64" ]]; then
   log "Installing Rosetta 2..."
   if ! /usr/bin/pgrep -q oahd; then
-    sudo softwareupdate --install-rosetta --agree-to-license
+    sudo softwareupdate --install-rosetta --agree-to-license || error "Failed to install Rosetta 2"
   fi
 fi
 
@@ -57,13 +66,13 @@ install_xcode_clt(){
   log "📦 Installing Xcode Command Line Tools..."
   if ! xcode-select -p &>/dev/null; then
     if ! xcode-select --install; then
-      log "Failed to install Xcode Command Line Tools"
+      error "Failed to install Xcode Command Line Tools"
       return 1
     fi
     until xcode-select -p &>/dev/null; do 
       sleep 20
       if ! pgrep -q "Install Command Line Tools"; then
-        log "Xcode Command Line Tools installation failed"
+        error "Xcode Command Line Tools installation failed"
         return 1
       fi
     done
@@ -74,18 +83,36 @@ install_homebrew(){
   log "🍺 Installing Homebrew..."
   if ! command -v brew &>/dev/null; then
     if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
-      log "Failed to install Homebrew"
+      error "Failed to install Homebrew"
       return 1
     fi
     
     # Verify Homebrew installation and set up environment
     if [[ -f "$BREW_PREFIX/bin/brew" ]]; then
-      eval "$($BREW_PREFIX/bin/brew shellenv)"
+      # Add Homebrew to PATH for all shells
+      for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
+        if [[ -f "$shell_config" ]]; then
+          if ! grep -q "brew shellenv" "$shell_config"; then
+            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$shell_config" || error "Failed to update $shell_config"
+          fi
+        fi
+      done
+      # Source the environment for current shell
+      eval "$($BREW_PREFIX/bin/brew shellenv)" || error "Failed to source Homebrew environment"
     elif [[ -f "/usr/local/bin/brew" ]]; then
       BREW_PREFIX="/usr/local"
-      eval "$($BREW_PREFIX/bin/brew shellenv)"
+      # Add Homebrew to PATH for all shells
+      for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
+        if [[ -f "$shell_config" ]]; then
+          if ! grep -q "brew shellenv" "$shell_config"; then
+            echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$shell_config" || error "Failed to update $shell_config"
+          fi
+        fi
+      done
+      # Source the environment for current shell
+      eval "$($BREW_PREFIX/bin/brew shellenv)" || error "Failed to source Homebrew environment"
     else
-      log "Homebrew installation failed - could not find brew executable"
+      error "Homebrew installation failed - could not find brew executable"
       return 1
     fi
     
@@ -94,7 +121,7 @@ install_homebrew(){
       log "Homebrew installation may have issues - please run 'brew doctor' for details"
     fi
   fi
-  eval "$(brew shellenv)"
+  eval "$(brew shellenv)" || error "Failed to source Homebrew environment"
 }
 
 accept_xcode_license(){
