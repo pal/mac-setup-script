@@ -3,7 +3,7 @@ set -e
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.20"
+SCRIPT_VERSION="1.0.21"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -200,7 +200,9 @@ Valheim:1554294918
 Xcode:497799835"
 
   # Get list of installed apps once
-  INSTALLED_APPS=$(mas list 2>/dev/null || echo "")
+  log "Checking currently installed apps..."
+  INSTALLED_APPS=$(mas list 2>&1 || echo "")
+  log "Installed apps: $INSTALLED_APPS"
   
   # Count total apps to install
   total_apps=0
@@ -222,9 +224,9 @@ Xcode:497799835"
   while IFS=: read -r name id; do
     if ! echo "$INSTALLED_APPS" | grep -q " $id "; then
       ((current++))
-      log "Installing $name... ($current/$total_apps)"
-      if ! mas install "$id"; then
-        error "Failed to install $name"
+      log "Installing $name (ID: $id)... ($current/$total_apps)"
+      if ! mas install "$id" 2>&1; then
+        error "Failed to install $name (ID: $id)"
       fi
     fi
   done <<< "$APPS_STR"
