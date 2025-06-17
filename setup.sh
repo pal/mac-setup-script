@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.29"
+SCRIPT_VERSION="1.0.30"
 
 # Get current user's username
 USERNAME=$(whoami)
@@ -146,8 +146,8 @@ accept_xcode_license(){
 
 brew_bundle(){
   log "📦 Installing Homebrew packages and casks..."
-  BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven mysides p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
-  BREW_CASKS=(1password aws-vault beekeeper-studio cloudflare-warp cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome microsoft-teams orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
+  BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
+  BREW_CASKS=(1password aws-vault beekeeper-studio cloudflare-warp cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome microsoft-teams mysides orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
   
   # Get list of installed packages and casks once
   INSTALLED_PKGS=$(brew list --formula -1)
@@ -329,10 +329,14 @@ configure_defaults(){
   chflags nohidden ~/Library || true
   # Show the /Volumes folder
   sudo chflags nohidden /Volumes || true
-  # Add Screenshots folder to Finder favorites
-  mysides add Screenshots "file:///Users/${USERNAME}/Library/Mobile%20Documents/com~apple~CloudDocs/Screenshots/2025" || true
-  # Add home folder to Finder favorites
-  mysides add Home "file:///Users/${USERNAME}" || true
+
+  # add favorites if they don't exist
+  if ! mysides list | grep -q "Screenshots"; then
+    mysides add Screenshots "file:///Users/${USERNAME}/Library/Mobile%20Documents/com~apple~CloudDocs/Screenshots/2025" || true
+  fi
+  if ! mysides list | grep -q "Home"; then
+    mysides add Home "file:///Users/${USERNAME}" || true
+  fi
 
   # Dock
   # Show indicator lights for open applications
@@ -399,6 +403,9 @@ configure_defaults(){
   defaults write com.google.Chrome DisablePrintPreview -bool true || true
   # Expand print dialog by default
   defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true || true
+  # Always show bookmarks bar (for all profiles)
+  defaults write com.google.Chrome ShowBookmarkBar -bool true || true
+  defaults write com.google.Chrome BookmarkBarEnabled -bool true || true
   
   # Kill affected applications (excluding Terminal and iTerm2)
   # Restart applications to apply changes
@@ -607,7 +614,7 @@ EOF
 
 post_install(){
   log "Post-installation steps:"
-  log "1. Open and sign in to required apps: 1Password, Dropbox, Google Chrome, Magnet"
+  log "1. Open and sign in to required apps: 1Password, Dropbox, Google Chrome, Magnet, Slack, Outlook, Teams"
   log "2. Configure Dropbox selective sync."
 }
 
