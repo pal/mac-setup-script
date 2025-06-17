@@ -314,14 +314,10 @@ setup_fish(){
 
 ghostty_config(){
   log "🖥️  Configuring Ghostty terminal..."
-  # Check if config already exists
-  if [[ -f ~/Library/Application\ Support/Ghostty/ghostty.toml ]]; then
-    log "Ghostty configuration already exists"
-    return 0
-  fi
   
-  mkdir -p ~/Library/Application\ Support/Ghostty || error "Failed to create Ghostty config directory"
-  cat > ~/Library/Application\ Support/Ghostty/ghostty.toml <<'EOF' || error "Failed to write Ghostty config"
+  mkdir -p ~/Library/Application\ Support/com.mitchellh.ghostty || error "Failed to create Ghostty config directory"
+  cat > ~/Library/Application\ Support/com.mitchellh.ghostty/config <<'EOF' || error "Failed to write Ghostty config"
+# see https://x.com/rauchg/status/1923842420778860803
 theme = "Mathias"
 font-family = "GeistMono NF"
 font-size = 11
