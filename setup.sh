@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.24"
+SCRIPT_VERSION="1.0.25"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -251,38 +251,154 @@ set_names(){
 
 configure_defaults(){
   log "⚙️  Configuring system defaults..."
-  # Check if defaults are already set
-  if defaults read NSGlobalDomain AppleLanguages &>/dev/null && 
-     defaults read NSGlobalDomain AppleLocale &>/dev/null; then
-    log "System defaults already configured"
-    return 0
-  fi
   
-  defaults write NSGlobalDomain AppleLanguages -array "en" || error "Failed to set AppleLanguages"
-  defaults write NSGlobalDomain AppleLocale -string "sv_SE" || error "Failed to set AppleLocale"
-  defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters" || error "Failed to set AppleMeasurementUnits"
-  sudo systemsetup -settimezone "Europe/Stockholm" > /dev/null || error "Failed to set timezone"
+  # Ensure sudo access is still valid
+  sudo -v || error "Lost sudo access - please run the script again"
+  
+  # Close any open System Preferences panes
+  osascript -e 'tell application "System Settings" to quit' || osascript -e 'tell application "System Preferences" to quit' || true
 
-  defaults write -g NSAutomaticCapitalizationEnabled -bool false || error "Failed to set NSAutomaticCapitalizationEnabled"
-  defaults write -g NSAutomaticDashSubstitutionEnabled -bool false || error "Failed to set NSAutomaticDashSubstitutionEnabled"
-  defaults write -g NSAutomaticPeriodSubstitutionEnabled -bool false || error "Failed to set NSAutomaticPeriodSubstitutionEnabled"
-  defaults write -g NSAutomaticQuoteSubstitutionEnabled -bool false || error "Failed to set NSAutomaticQuoteSubstitutionEnabled"
-  defaults write -g NSAutomaticSpellingCorrectionEnabled -bool false || error "Failed to set NSAutomaticSpellingCorrectionEnabled"
-  defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false || error "Failed to set ApplePressAndHoldEnabled"
-  defaults write NSGlobalDomain KeyRepeat -int 2 || error "Failed to set KeyRepeat"
-  defaults write NSGlobalDomain InitialKeyRepeat -int 15 || error "Failed to set InitialKeyRepeat"
+  # Disable the sound effects on boot
+  sudo nvram SystemAudioVolume=" " || true
 
-  defaults write com.apple.finder AppleShowAllFiles -bool true || error "Failed to set AppleShowAllFiles"
-  defaults write NSGlobalDomain AppleShowAllExtensions -bool true || error "Failed to set AppleShowAllExtensions"
-  defaults write com.apple.finder ShowStatusBar -bool true || error "Failed to set ShowStatusBar"
-  defaults write com.apple.finder ShowPathbar -bool true || error "Failed to set ShowPathbar"
-  defaults write com.apple.finder _FXShowPosixPathInTitle -bool true || error "Failed to set _FXShowPosixPathInTitle"
-  defaults write com.apple.finder _FXDefaultSearchScope -string "SCcf" || error "Failed to set _FXDefaultSearchScope"
-  chflags nohidden ~/Library || error "Failed to unhide Library"
-  sudo chflags nohidden /Volumes || error "Failed to unhide Volumes"
-  defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv" || error "Failed to set FXPreferredViewStyle"
+  # Language & Region
+  # Set system language to English
+  defaults write NSGlobalDomain AppleLanguages -array "en" || true
+  # Set locale to Swedish
+  defaults write NSGlobalDomain AppleLocale -string "sv_SE" || true
+  # Set measurement units to centimeters
+  defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters" || true
+  # Use metric system
+  defaults write NSGlobalDomain AppleMetricUnits -bool true || true
+  # Set timezone to Stockholm
+  sudo ln -sf /usr/share/zoneinfo/Europe/Stockholm /etc/localtime || true
 
-  killall Finder || true
+  # Keyboard & Input
+  # Disable automatic capitalization
+  defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false || true
+  # Disable smart dashes
+  defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false || true
+  # Disable automatic period substitution
+  defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false || true
+  # Disable smart quotes
+  defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false || true
+  # Disable auto-correct
+  defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false || true
+  # Disable press-and-hold for key repeat
+  defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false || true
+  # Set a fast keyboard repeat rate
+  defaults write NSGlobalDomain KeyRepeat -int 2 || true
+  # Set a short initial key repeat delay
+  defaults write NSGlobalDomain InitialKeyRepeat -int 15 || true
+  # Enable full keyboard access for all controls
+  defaults write NSGlobalDomain AppleKeyboardUIMode -int 3 || true
+
+  # Finder
+  # Allow quitting Finder via ⌘Q
+  defaults write com.apple.finder QuitMenuItem -bool true || true
+  # Show hidden files by default
+  defaults write com.apple.finder AppleShowAllFiles -bool true || true
+  # Show all filename extensions
+  defaults write NSGlobalDomain AppleShowAllExtensions -bool true || true
+  # Show status bar in Finder
+  defaults write com.apple.finder ShowStatusBar -bool true || true
+  # Show path bar in Finder
+  defaults write com.apple.finder ShowPathbar -bool true || true
+  # Display full POSIX path as window title
+  defaults write com.apple.finder _FXShowPosixPathInTitle -bool true || true
+  # Keep folders on top when sorting by name
+  defaults write com.apple.finder _FXSortFoldersFirst -bool true || true
+  # Use list view in all Finder windows
+  defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv" || true
+  # Expand File Info panes for General, Open with, and Sharing & Permissions
+  defaults write com.apple.finder FXInfoPanesExpanded -dict \
+    General -bool true \
+    OpenWith -bool true \
+    Privileges -bool true || true
+  # Show the ~/Library folder
+  chflags nohidden ~/Library || true
+  # Show the /Volumes folder
+  sudo chflags nohidden /Volumes || true
+
+  # Dock
+  # Show indicator lights for open applications
+  defaults write com.apple.dock show-process-indicators -bool true || true
+  # Wipe all default app icons from the Dock
+  defaults write com.apple.dock persistent-apps -array || true
+  # Speed up Mission Control animations
+  defaults write com.apple.dock expose-animation-duration -float 0.1 || true
+  # Make Dock icons of hidden applications translucent
+  defaults write com.apple.dock showhidden -bool true || true
+  # Don't show recent applications in Dock
+  defaults write com.apple.dock show-recents -bool false || true
+  # Disable the Launchpad gesture
+  defaults write com.apple.dock showLaunchpadGestureEnabled -int 0 || true
+  # Set top right hot corner to show Desktop
+  defaults write com.apple.dock wvous-tr-corner -int 4 || true
+  # No modifier key for top right hot corner
+  defaults write com.apple.dock wvous-tr-modifier -int 0 || true
+  # Set bottom left hot corner to start screen saver
+  defaults write com.apple.dock wvous-bl-corner -int 5 || true
+  # No modifier key for bottom left hot corner
+  defaults write com.apple.dock wvous-bl-modifier -int 0 || true
+
+  # Screenshots
+  # Save screenshots to iCloud Drive
+  defaults write com.apple.screencapture location -string "/Users/pal/Library/Mobile Documents/com~apple~CloudDocs/Screenshots" || true
+  # Save screenshots in PNG format
+  defaults write com.apple.screencapture type -string "png" || true
+  # Disable shadow in screenshots
+  defaults write com.apple.screencapture disable-shadow -bool true || true
+
+  # Display
+  # Enable subpixel font rendering on non-Apple LCDs
+  defaults write NSGlobalDomain AppleFontSmoothing -int 1 || true
+  # Enable HiDPI display modes
+  # sudo defaults write /Library/Preferences/com.apple.windowserver DisplayResolutionEnabled -bool true || true
+
+  # Mac App Store
+  # Enable WebKit Developer Tools in App Store
+  defaults write com.apple.appstore WebKitDeveloperExtras -bool true || true
+  # Enable automatic update check
+  defaults write com.apple.SoftwareUpdate AutomaticCheckEnabled -bool true || true
+  # Check for updates daily
+  defaults write com.apple.SoftwareUpdate ScheduleFrequency -int 1 || true
+  # Download updates in background
+  defaults write com.apple.SoftwareUpdate AutomaticDownload -int 1 || true
+  # Install system data files & security updates
+  defaults write com.apple.SoftwareUpdate CriticalUpdateInstall -int 1 || true
+  # Turn on app auto-update
+  defaults write com.apple.commerce AutoUpdate -bool true || true
+
+  # Photos
+  # Prevent Photos from opening automatically when devices are plugged in
+  defaults -currentHost write com.apple.ImageCapture disableHotPlug -bool true || true
+
+  # Chrome
+  # Disable backswipe on trackpads
+  defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false || true
+  # Disable backswipe on trackpads (Canary)
+  defaults write com.google.Chrome.canary AppleEnableSwipeNavigateWithScrolls -bool false || true
+  # Disable backswipe on Magic Mouse
+  defaults write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false || true
+  # Disable backswipe on Magic Mouse (Canary)
+  defaults write com.google.Chrome.canary AppleEnableMouseSwipeNavigateWithScrolls -bool false || true
+  # Use system-native print preview dialog
+  defaults write com.google.Chrome DisablePrintPreview -bool true || true
+  # Use system-native print preview dialog (Canary)
+  defaults write com.google.Chrome.canary DisablePrintPreview -bool true || true
+  # Expand print dialog by default
+  defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true || true
+  # Expand print dialog by default (Canary)
+  defaults write com.google.Chrome.canary PMPrintingExpandedStateForPrint2 -bool true || true
+
+  # Kill affected applications (excluding Terminal and iTerm2)
+  # Restart applications to apply changes
+  for app in "Activity Monitor" "Address Book" "Calendar" "cfprefsd" "Contacts" "Dock" "Finder" "Google Chrome Canary" "Google Chrome" "Mail" "Messages" "Photos" "SizeUp" "Spectacle" "SystemUIServer" "Transmission" "iCal"; do
+    killall "${app}" &> /dev/null || true
+  done
+
+  log "Done. Note that some of these changes require a logout/restart to take effect."
 }
 
 setup_fish(){
