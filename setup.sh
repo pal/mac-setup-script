@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.26"
+SCRIPT_VERSION="1.0.27"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -141,10 +141,14 @@ accept_xcode_license(){
 brew_bundle(){
   log "📦 Installing Homebrew packages and casks..."
   BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
-  BREW_CASKS=(1password aws-vault beekeeper-studio cloudflare-warp cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
+  BREW_CASKS=(1password aws-vault beekeeper-studio cloudflare-warp cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome microsoft-teams orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
+  
+  # Get list of installed packages and casks once
+  INSTALLED_PKGS=$(brew list --formula -1)
+  INSTALLED_CASKS=$(brew list --cask -1)
   
   for f in "${BREW_PKGS[@]}"; do 
-    if brew list "$f" &>/dev/null; then
+    if echo "$INSTALLED_PKGS" | grep -q "^${f}$"; then
       log "Package already installed: $f"
     else
       log "Installing package: $f"
@@ -153,7 +157,7 @@ brew_bundle(){
   done
   
   for c in "${BREW_CASKS[@]}"; do 
-    if brew list --cask "$c" &>/dev/null; then
+    if echo "$INSTALLED_CASKS" | grep -q "^${c}$"; then
       log "Cask already installed: $c"
     else
       log "Installing cask: $c"
