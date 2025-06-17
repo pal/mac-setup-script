@@ -2,7 +2,13 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.28"
+SCRIPT_VERSION="1.0.29"
+
+# Get current user's username
+USERNAME=$(whoami)
+
+# User email for git and SSH configuration
+EMAIL="pal@subtree.se"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -140,7 +146,7 @@ accept_xcode_license(){
 
 brew_bundle(){
   log "📦 Installing Homebrew packages and casks..."
-  BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
+  BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven mysides p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
   BREW_CASKS=(1password aws-vault beekeeper-studio cloudflare-warp cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome microsoft-teams orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
   
   # Get list of installed packages and casks once
@@ -239,7 +245,7 @@ Xcode:497799835"
 
 set_names(){
   log "🏷️  Setting system names..."
-  local HOST="pal-brattberg-macbookpro"
+  local HOST="${USERNAME}-macbookpro"
   local current_name=$(scutil --get ComputerName 2>/dev/null)
   
   if [[ "$current_name" == "$HOST" ]]; then
@@ -323,6 +329,10 @@ configure_defaults(){
   chflags nohidden ~/Library || true
   # Show the /Volumes folder
   sudo chflags nohidden /Volumes || true
+  # Add Screenshots folder to Finder favorites
+  mysides add Screenshots "file:///Users/${USERNAME}/Library/Mobile%20Documents/com~apple~CloudDocs/Screenshots/2025" || true
+  # Add home folder to Finder favorites
+  mysides add Home "file:///Users/${USERNAME}" || true
 
   # Dock
   # Show indicator lights for open applications
@@ -348,7 +358,9 @@ configure_defaults(){
 
   # Screenshots
   # Save screenshots to iCloud Drive
-  defaults write com.apple.screencapture location -string "/Users/pal/Library/Mobile Documents/com~apple~CloudDocs/Screenshots/2025" || true
+  mkdir -p "/Users/${USERNAME}/Library/Mobile Documents/com~apple~CloudDocs/Screenshots/2025" || true
+  defaults write com.apple.screencapture location -string "/Users/${USERNAME}/Library/Mobile Documents/com~apple~CloudDocs/Screenshots/2025" || true
+  
   # Save screenshots in PNG format
   defaults write com.apple.screencapture type -string "png" || true
   # Disable shadow in screenshots
@@ -462,7 +474,7 @@ configure_git(){
   git config --global rebase.autostash true || error "Failed to set rebase.autostash"
   git config --global rerere.autoUpdate true || error "Failed to set rerere.autoUpdate"
   git config --global rerere.enabled true || error "Failed to set rerere.enabled"
-  git config --global user.email "pal@subtree.se" || error "Failed to set user.email"
+  git config --global user.email "${EMAIL}" || error "Failed to set user.email"
   git config --global user.name "Pål Brattberg" || error "Failed to set user.name"
 }
 
@@ -509,7 +521,7 @@ setup_ssh_keys(){
   fi
   
   log "Generating new SSH key..."
-  ssh-keygen -t ed25519 -C "pal@subtree.se" -f ~/.ssh/id_ed25519 -N "" || error "Failed to generate SSH key"
+  ssh-keygen -t ed25519 -C "${EMAIL}" -f ~/.ssh/id_ed25519 -N "" || error "Failed to generate SSH key"
   
   # Start ssh-agent
   eval "$(ssh-agent -s)" || error "Failed to start ssh-agent"
