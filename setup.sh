@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.27"
+SCRIPT_VERSION="1.0.28"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -348,7 +348,7 @@ configure_defaults(){
 
   # Screenshots
   # Save screenshots to iCloud Drive
-  defaults write com.apple.screencapture location -string "/Users/pal/Library/Mobile Documents/com~apple~CloudDocs/Screenshots" || true
+  defaults write com.apple.screencapture location -string "/Users/pal/Library/Mobile Documents/com~apple~CloudDocs/Screenshots/2025" || true
   # Save screenshots in PNG format
   defaults write com.apple.screencapture type -string "png" || true
   # Disable shadow in screenshots
@@ -381,24 +381,16 @@ configure_defaults(){
   # Chrome
   # Disable backswipe on trackpads
   defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false || true
-  # Disable backswipe on trackpads (Canary)
-  defaults write com.google.Chrome.canary AppleEnableSwipeNavigateWithScrolls -bool false || true
   # Disable backswipe on Magic Mouse
   defaults write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false || true
-  # Disable backswipe on Magic Mouse (Canary)
-  defaults write com.google.Chrome.canary AppleEnableMouseSwipeNavigateWithScrolls -bool false || true
   # Use system-native print preview dialog
   defaults write com.google.Chrome DisablePrintPreview -bool true || true
-  # Use system-native print preview dialog (Canary)
-  defaults write com.google.Chrome.canary DisablePrintPreview -bool true || true
   # Expand print dialog by default
   defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true || true
-  # Expand print dialog by default (Canary)
-  defaults write com.google.Chrome.canary PMPrintingExpandedStateForPrint2 -bool true || true
-
+  
   # Kill affected applications (excluding Terminal and iTerm2)
   # Restart applications to apply changes
-  for app in "Activity Monitor" "Address Book" "Calendar" "cfprefsd" "Contacts" "Dock" "Finder" "Google Chrome Canary" "Google Chrome" "Mail" "Messages" "Photos" "SizeUp" "Spectacle" "SystemUIServer" "Transmission" "iCal"; do
+  for app in "Activity Monitor" "Address Book" "Calendar" "cfprefsd" "Contacts" "Dock" "Finder" "Google Chrome" "Mail" "Messages" "Photos" "SizeUp" "Spectacle" "SystemUIServer" "Transmission" "iCal"; do
     killall "${app}" &> /dev/null || true
   done
 
