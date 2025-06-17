@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-set -e
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.22"
+SCRIPT_VERSION="1.0.24"
 
 # Record start time
 START_TIME=$(date +%s)
@@ -175,7 +174,7 @@ mas_install(){
     
     # Open App Store
     open -a "App Store"
-    return
+    return 1
   else
     log "✅ Successfully signed in to Mac App Store"
   fi
@@ -199,16 +198,14 @@ TestFlight:899247664
 Valheim:1554294918
 Xcode:497799835"
 
-  # Get list of installed apps once
-  log "Checking currently installed apps..."
-  INSTALLED_APPS=$(mas list 2>&1 || echo "")
-  log "Installed apps: $INSTALLED_APPS"
+  # Get list of installed app IDs
+  INSTALLED_APP_IDS=$(mas list 2>/dev/null | awk '{print $1}')
   
   # Count total apps to install
   total_apps=0
   apps_to_install=()
   while IFS=: read -r name id; do
-    if ! echo "$INSTALLED_APPS" | grep -q " $id "; then
+    if ! echo "$INSTALLED_APP_IDS" | grep -qx "$id"; then
       ((total_apps++))
       apps_to_install+=("$name:$id")
     fi
@@ -229,8 +226,11 @@ Xcode:497799835"
     log "Installing $name (ID: $id)... ($current/$total_apps)"
     if ! mas install "$id" 2>&1; then
       error "Failed to install $name (ID: $id)"
+      return 1
     fi
   done
+  
+  return 0
 }
 
 set_names(){
@@ -435,20 +435,20 @@ clone_repos(){
     [social-image-creator]=git@github.com:subtree/social-image-creator.git
     [saas-template-upptime]=git@github.com:subtree/saas-template-upptime.git
     [subtree-sites]=git@github.com:subtree/subtree-sites.git
-    [subtree.se]=https://github.com/subtree/subtree.se.git
-    [jujino.com]=https://github.com/subtree/jujino.com.git
+    [subtree.se]=git@github.com:subtree/subtree.se.git
+    [jujino.com]=git@github.com:subtree/jujino.com.git
     [julafton.com]=git@github.com:subtree/julafton.com.git
     [mac-setup-script]=git@github.com:pal/mac-setup-script.git
     [palbrattberg.com]=git@github.com:pal/palbrattberg.com.git
     [ai-pres]=git@github.com:pal/ai-pres.git
     [deep-research]=git@github.com:pal/deep-research.git
-    [domainchecker]=https://github.com/pal/domainchecker.git
-    [mousegame]=https://github.com/pal/mousegame.git
-    [k8s-hosting]=https://github.com/subtree/k8s-hosting.git
+    [domainchecker]=git@github.com:pal/domainchecker.git
+    [mousegame]=git@github.com:pal/mousegame.git
+    [k8s-hosting]=git@github.com:subtree/k8s-hosting.git
     [bolt.diy]=git@github.com:stackblitz-labs/bolt.diy.git
     [opencontrol]=git@github.com:toolbeam/opencontrol.git
-    [productvoice]=git@github.com:WeDoProducts/productvoice.git
-    [covid-containment]=git@github.com:Shpigford/covid-containment.git
+    # [productvoice]=git@github.com:WeDoProducts/productvoice.git
+    # [covid-containment]=git@github.com:Shpigford/covid-containment.git
   )
   
   for dir in "${!REPOS[@]}"; do
@@ -486,7 +486,9 @@ EOF
 }
 
 post_install(){
-  log "Post-installation steps:\n1. Open and sign in to required apps.\n2. Configure Dropbox selective sync.\n3. Accept Xcode licence (sudo xcodebuild -license accept)."
+  log "Post-installation steps:"
+  log "1. Open and sign in to required apps: 1Password, Dropbox, Google Chrome, Magnet"
+  log "2. Configure Dropbox selective sync."
 }
 
 prevent_sleep(){
@@ -504,12 +506,52 @@ restore_sleep(){
   fi
 }
 
+check_manual_steps(){
+  log "🔍 Checking manual steps..."
+  local needs_manual_steps=false
+  local manual_steps=()
+
+  # Check Mac App Store login
+  if ! mas list &>/dev/null; then
+    needs_manual_steps=true
+    manual_steps+=("Sign in to Mac App Store")
+  fi
+
+  # Check 1Password
+  if ! osascript -e 'tell application "1Password" to get version' &>/dev/null; then
+    needs_manual_steps=true
+    manual_steps+=("Open and sign in to 1Password")
+  fi
+
+  # Check Dropbox
+  if ! osascript -e 'tell application "Dropbox" to get version' &>/dev/null; then
+    needs_manual_steps=true
+    manual_steps+=("Open and sign in to Dropbox")
+  fi
+
+  # Check Chrome
+  if ! osascript -e 'tell application "Google Chrome" to get version' &>/dev/null; then
+    needs_manual_steps=true
+    manual_steps+=("Open and sign in to Chrome")
+  fi
+
+  if $needs_manual_steps; then
+    log "⚠️  Manual steps required:"
+    for step in "${manual_steps[@]}"; do
+      log "  • $step"
+    done
+    log "\nPlease complete these steps and run the script again."
+    exit 0
+  fi
+}
+
 main(){
   prevent_sleep
   install_xcode_clt
   install_homebrew
   accept_xcode_license
   brew_bundle
+  check_manual_steps
   mas_install
   set_names
   configure_defaults
