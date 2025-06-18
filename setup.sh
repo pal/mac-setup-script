@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.37"
+SCRIPT_VERSION="1.0.38"
 
 # Get current user's username
 USERNAME=$(whoami)
@@ -89,9 +89,16 @@ install_xcode_clt(){
 
 install_homebrew(){
   log "🍺 Installing Homebrew..."
-  if command -v brew &>/dev/null; then
+  # Check for Homebrew in both common locations
+  if [[ -x "/opt/homebrew/bin/brew" ]]; then
+    BREW_PREFIX="/opt/homebrew"
+    eval "$(/opt/homebrew/bin/brew shellenv)" || error "Failed to source Homebrew environment"
     log "Homebrew already installed"
-    eval "$(brew shellenv)" || error "Failed to source Homebrew environment"
+    return 0
+  elif [[ -x "/usr/local/bin/brew" ]]; then
+    BREW_PREFIX="/usr/local"
+    eval "$(/usr/local/bin/brew shellenv)" || error "Failed to source Homebrew environment"
+    log "Homebrew already installed"
     return 0
   fi
   
@@ -106,7 +113,7 @@ install_homebrew(){
     for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
       if [[ -f "$shell_config" ]]; then
         if ! grep -q "brew shellenv" "$shell_config"; then
-          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$shell_config" || error "Failed to update $shell_config"
+          echo "eval \"($BREW_PREFIX/bin/brew shellenv)\"" >> "$shell_config" || error "Failed to update $shell_config"
         fi
       fi
     done
@@ -118,7 +125,7 @@ install_homebrew(){
     for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
       if [[ -f "$shell_config" ]]; then
         if ! grep -q "brew shellenv" "$shell_config"; then
-          echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$shell_config" || error "Failed to update $shell_config"
+          echo "eval \"(/usr/local/bin/brew shellenv)\"" >> "$shell_config" || error "Failed to update $shell_config"
         fi
       fi
     done
