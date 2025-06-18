@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.38"
+SCRIPT_VERSION="1.0.39"
 
 # Get current user's username
 USERNAME=$(whoami)
@@ -89,52 +89,57 @@ install_xcode_clt(){
 
 install_homebrew(){
   log "🍺 Installing Homebrew..."
-  # Check for Homebrew in both common locations
+  
+  # First try to detect if brew is already available in PATH
+  if command -v brew &>/dev/null; then
+    BREW_PREFIX=$(brew --prefix)
+    log "Homebrew already installed at $BREW_PREFIX"
+    return 0
+  fi
+  
+  # If not in PATH, check common installation locations
   if [[ -x "/opt/homebrew/bin/brew" ]]; then
     BREW_PREFIX="/opt/homebrew"
     eval "$(/opt/homebrew/bin/brew shellenv)" || error "Failed to source Homebrew environment"
-    log "Homebrew already installed"
+    log "Homebrew already installed at $BREW_PREFIX"
     return 0
   elif [[ -x "/usr/local/bin/brew" ]]; then
     BREW_PREFIX="/usr/local"
     eval "$(/usr/local/bin/brew shellenv)" || error "Failed to source Homebrew environment"
-    log "Homebrew already installed"
+    log "Homebrew already installed at $BREW_PREFIX"
     return 0
   fi
   
+  # If not found, install Homebrew
   if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
     error "Failed to install Homebrew"
     return 1
   fi
   
-  # Verify Homebrew installation and set up environment
-  if [[ -f "$BREW_PREFIX/bin/brew" ]]; then
-    # Add Homebrew to PATH for all shells
-    for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
-      if [[ -f "$shell_config" ]]; then
-        if ! grep -q "brew shellenv" "$shell_config"; then
-          echo "eval \"($BREW_PREFIX/bin/brew shellenv)\"" >> "$shell_config" || error "Failed to update $shell_config"
-        fi
-      fi
-    done
-    # Source the environment for current shell
-    eval "$($BREW_PREFIX/bin/brew shellenv)" || error "Failed to source Homebrew environment"
-  elif [[ -f "/usr/local/bin/brew" ]]; then
-    BREW_PREFIX="/usr/local"
-    # Add Homebrew to PATH for all shells
-    for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
-      if [[ -f "$shell_config" ]]; then
-        if ! grep -q "brew shellenv" "$shell_config"; then
-          echo "eval \"(/usr/local/bin/brew shellenv)\"" >> "$shell_config" || error "Failed to update $shell_config"
-        fi
-      fi
-    done
-    # Source the environment for current shell
-    eval "$($BREW_PREFIX/bin/brew shellenv)" || error "Failed to source Homebrew environment"
+  # After installation, determine the correct prefix based on architecture
+  if [[ "$ARCH" == "arm64" ]]; then
+    BREW_PREFIX="/opt/homebrew"
   else
+    BREW_PREFIX="/usr/local"
+  fi
+  
+  # Verify Homebrew installation
+  if [[ ! -f "$BREW_PREFIX/bin/brew" ]]; then
     error "Homebrew installation failed - could not find brew executable"
     return 1
   fi
+  
+  # Add Homebrew to PATH for all shells
+  for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
+    if [[ -f "$shell_config" ]]; then
+      if ! grep -q "brew shellenv" "$shell_config"; then
+        echo "eval \"($BREW_PREFIX/bin/brew shellenv)\"" >> "$shell_config" || error "Failed to update $shell_config"
+      fi
+    fi
+  done
+  
+  # Source the environment for current shell
+  eval "$($BREW_PREFIX/bin/brew shellenv)" || error "Failed to source Homebrew environment"
   
   # Verify Homebrew is working
   if ! brew doctor &>/dev/null; then
@@ -430,24 +435,47 @@ setup_fish(){
   # Check if fish is already set up
   if [[ "$SHELL" == *fish ]] && grep -q "$shell_path" /etc/shells 2>/dev/null; then
     log "Fish shell already set up"
-    return 0
+  else
+    # Add fish to /etc/shells if not already there
+    grep -q "$shell_path" /etc/shells || echo "$shell_path" | sudo tee -a /etc/shells || error "Failed to add fish to /etc/shells"
+    
+    # Change shell to fish if not already set
+    if [[ "$SHELL" != *fish ]]; then
+      chsh -s "$shell_path" || error "Failed to change shell to fish"
+    fi
   fi
-  
-  # Add fish to /etc/shells if not already there
-  grep -q "$shell_path" /etc/shells || echo "$shell_path" | sudo tee -a /etc/shells || error "Failed to add fish to /etc/shells"
   
   # Create fish config directory if it doesn't exist
   mkdir -p ~/.config/fish || error "Failed to create fish config directory"
   
-  # Add Homebrew to fish config if not already there
-  if ! grep -q "brew shellenv" ~/.config/fish/config.fish 2>/dev/null; then
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.config/fish/config.fish || error "Failed to update fish config"
-  fi
-  
-  # Change shell to fish if not already set
-  if [[ "$SHELL" != *fish ]]; then
-    chsh -s "$shell_path" || error "Failed to change shell to fish"
-  fi
+  # Create or update fish config file with Homebrew environment
+  cat > ~/.config/fish/config.fish <<EOF
+# Homebrew environment
+if test -f "$BREW_PREFIX/bin/brew"
+    set -gx HOMEBREW_PREFIX "$BREW_PREFIX"
+    set -gx HOMEBREW_CELLAR "$BREW_PREFIX/Cellar"
+    set -gx HOMEBREW_REPOSITORY "$BREW_PREFIX"
+    set -gx PATH "$BREW_PREFIX/bin" "$BREW_PREFIX/sbin" \$PATH
+    set -gx MANPATH "$BREW_PREFIX/share/man" \$MANPATH
+    set -gx INFOPATH "$BREW_PREFIX/share/info" \$INFOPATH
+end
+
+# Add Homebrew's sbin to PATH
+if test -d "$BREW_PREFIX/sbin"
+    set -gx PATH "$BREW_PREFIX/sbin" \$PATH
+end
+
+# Add Homebrew's bin to PATH
+if test -d "$BREW_PREFIX/bin"
+    set -gx PATH "$BREW_PREFIX/bin" \$PATH
+end
+
+# Add Bun to PATH
+if test -d "$HOME/.bun/bin"
+    set -gx BUN_INSTALL "$HOME/.bun"
+    set -gx PATH "$HOME/.bun/bin" \$PATH
+end
+EOF
 }
 
 ghostty_config(){
@@ -691,20 +719,94 @@ check_manual_steps(){
 # Install Bun (not available via Homebrew)
 install_bun(){
   log "🍞 Installing Bun..."
-  if command -v bun &>/dev/null; then
-    log "Bun already installed"
+  
+  # Check if bun is already installed and working
+  if command -v bun &>/dev/null && bun --version &>/dev/null; then
+    log "Bun already installed (version $(bun --version))"
     return 0
   fi
+  
+  # Check if bun is installed but not in PATH
+  if [[ -f "$HOME/.bun/bin/bun" ]]; then
+    log "Bun is installed but not in PATH"
+    # Add bun to PATH for all shells
+    for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
+      if [[ -f "$shell_config" ]]; then
+        if [[ "$shell_config" == *fish* ]]; then
+          if ! grep -q "set -gx BUN_INSTALL" "$shell_config"; then
+            echo 'set -gx BUN_INSTALL "$HOME/.bun"' >> "$shell_config"
+            echo 'set -gx PATH "$BUN_INSTALL/bin" $PATH' >> "$shell_config"
+          fi
+        else
+          if ! grep -q "export BUN_INSTALL" "$shell_config"; then
+            echo 'export BUN_INSTALL="$HOME/.bun"' >> "$shell_config"
+            echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> "$shell_config"
+          fi
+        fi
+      fi
+    done
+    # Source the environment for current shell
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
+    return 0
+  fi
+  
+  # Install bun if not found
   curl -fsSL https://bun.sh/install | bash || error "Failed to install Bun"
+  
+  # Add bun to PATH for all shells
+  for shell_config in ~/.bash_profile ~/.zshrc ~/.config/fish/config.fish; do
+    if [[ -f "$shell_config" ]]; then
+      if [[ "$shell_config" == *fish* ]]; then
+        if ! grep -q "set -gx BUN_INSTALL" "$shell_config"; then
+          echo 'set -gx BUN_INSTALL "$HOME/.bun"' >> "$shell_config"
+          echo 'set -gx PATH "$BUN_INSTALL/bin" $PATH' >> "$shell_config"
+        fi
+      else
+        if ! grep -q "export BUN_INSTALL" "$shell_config"; then
+          echo 'export BUN_INSTALL="$HOME/.bun"' >> "$shell_config"
+          echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> "$shell_config"
+        fi
+      fi
+    fi
+  done
+  
+  # Source the environment for current shell
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
+  
+  # Verify installation
+  if ! command -v bun &>/dev/null; then
+    error "Bun installation failed - could not verify installation"
+    return 1
+  fi
 }
 
 install_aws_vault_latest(){
   log "🔒 Ensuring latest aws-vault from GitHub..."
-  if command -v aws-vault &>/dev/null; then
+  
+  # Check if aws-vault is already installed and working
+  if command -v aws-vault &>/dev/null && aws-vault --version &>/dev/null; then
     local current_version
     current_version=$(aws-vault --version | awk '{print $3}')
     log "aws-vault already installed (version $current_version)"
+    
+    # Check if we need to update
+    local latest_version
+    local arch
+    arch=$(uname -m)
+    if [[ "$arch" == "arm64" ]]; then
+      latest_version=$(curl -s https://api.github.com/repos/99designs/aws-vault/releases/latest | grep browser_download_url | grep darwin-arm64 | cut -d '"' -f 4 | rev | cut -d '/' -f 1 | rev | sed 's/aws-vault-v//' | sed 's/-darwin-arm64//')
+    else
+      latest_version=$(curl -s https://api.github.com/repos/99designs/aws-vault/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | rev | cut -d '/' -f 1 | rev | sed 's/aws-vault-v//' | sed 's/-darwin-amd64//')
+    fi
+    
+    if [[ "$current_version" == "$latest_version" ]]; then
+      log "aws-vault is already at the latest version"
+      return 0
+    fi
   fi
+  
   # Get latest release URL for macOS arm64 or amd64
   local arch
   arch=$(uname -m)
@@ -714,15 +816,25 @@ install_aws_vault_latest(){
   else
     asset_url=$(curl -s https://api.github.com/repos/99designs/aws-vault/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4)
   fi
+  
   if [[ -z "$asset_url" ]]; then
     error "Could not find aws-vault release for your architecture"
     return 1
   fi
+  
+  # Download and install
   tmpfile=$(mktemp)
   curl -L "$asset_url" -o "$tmpfile" || { error "Failed to download aws-vault"; return 1; }
   chmod +x "$tmpfile"
   sudo mv "$tmpfile" /usr/local/bin/aws-vault || { error "Failed to move aws-vault to /usr/local/bin"; return 1; }
-  log "aws-vault installed/updated to latest release."
+  
+  # Verify installation
+  if ! aws-vault --version &>/dev/null; then
+    error "aws-vault installation failed - could not verify installation"
+    return 1
+  fi
+  
+  log "aws-vault installed/updated to latest release"
 }
 
 main(){
