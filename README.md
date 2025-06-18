@@ -69,7 +69,7 @@ Or if it's cached, use this:
 - Automatically open new Finder window when volume is mounted
 
 ### Screen & Screenshots
-- Save screenshots to iCloud Drive/Screenshots/2025_Intersolia
+- Save screenshots to iCloud Drive/Screenshots/2025
 - Save screenshots in PNG format
 - Disable shadow in screenshots
 - Enable HiDPI display modes
