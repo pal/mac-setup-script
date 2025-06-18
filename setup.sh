@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.36"
+SCRIPT_VERSION="1.0.37"
 
 # Get current user's username
 USERNAME=$(whoami)
@@ -691,12 +691,40 @@ install_bun(){
   curl -fsSL https://bun.sh/install | bash || error "Failed to install Bun"
 }
 
+install_aws_vault_latest(){
+  log "🔒 Ensuring latest aws-vault from GitHub..."
+  if command -v aws-vault &>/dev/null; then
+    local current_version
+    current_version=$(aws-vault --version | awk '{print $3}')
+    log "aws-vault already installed (version $current_version)"
+  fi
+  # Get latest release URL for macOS arm64 or amd64
+  local arch
+  arch=$(uname -m)
+  local asset_url
+  if [[ "$arch" == "arm64" ]]; then
+    asset_url=$(curl -s https://api.github.com/repos/99designs/aws-vault/releases/latest | grep browser_download_url | grep darwin-arm64 | cut -d '"' -f 4)
+  else
+    asset_url=$(curl -s https://api.github.com/repos/99designs/aws-vault/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4)
+  fi
+  if [[ -z "$asset_url" ]]; then
+    error "Could not find aws-vault release for your architecture"
+    return 1
+  fi
+  tmpfile=$(mktemp)
+  curl -L "$asset_url" -o "$tmpfile" || { error "Failed to download aws-vault"; return 1; }
+  chmod +x "$tmpfile"
+  sudo mv "$tmpfile" /usr/local/bin/aws-vault || { error "Failed to move aws-vault to /usr/local/bin"; return 1; }
+  log "aws-vault installed/updated to latest release."
+}
+
 main(){
   prevent_sleep
   install_xcode_clt
   install_homebrew
   accept_xcode_license
   brew_bundle
+  install_aws_vault_latest
   install_bun
   check_manual_steps
   mas_install
