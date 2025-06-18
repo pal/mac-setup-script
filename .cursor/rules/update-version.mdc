@@ -1,6 +1,6 @@
 ---
 description: 
-globs: setup.sh
+globs: setup.sh,*.sh
 alwaysApply: false
 ---
 # IMPORTANT: Version Update Rule

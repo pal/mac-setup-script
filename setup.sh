@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.30"
+SCRIPT_VERSION="1.0.31"
 
 # Get current user's username
 USERNAME=$(whoami)
@@ -548,34 +548,34 @@ clone_repos(){
   cd "$BASE" || error "Failed to change to dev directory"
   
   declare -A REPOS=(
-    [peasy-master]=git@github.com:pal/peasy.git#master
-    [peasy]=git@github.com:pal/peasy.git#planetscale
-    [frankfurter]=git@github.com:pal/frankfurter.git
-    [peasy_client]=git@github.com:pal/peasy_client.git
-    [peasyv3]=git@github.com:pal/peasyv3.git
-    [peasy-ui]=git@github.com:subtree/peasy-ui.git
-    [saas-template]=git@github.com:subtree/saas-template.git
-    [template-magic-board]=git@github.com:subtree/template-magic-board.git
-    [setup-hosting]=git@github.com:subtree/setup-hosting.git
-    [companynamemaker.com]=git@github.com:subtree/companynamemaker.com.git
-    [juniormarketer.ai]=git@github.com:subtree/juniormarketer.ai.git
-    [social-image-creator]=git@github.com:subtree/social-image-creator.git
-    [saas-template-upptime]=git@github.com:subtree/saas-template-upptime.git
-    [subtree-sites]=git@github.com:subtree/subtree-sites.git
-    [subtree.se]=git@github.com:subtree/subtree.se.git
-    [jujino.com]=git@github.com:subtree/jujino.com.git
-    [julafton.com]=git@github.com:subtree/julafton.com.git
-    [mac-setup-script]=git@github.com:pal/mac-setup-script.git
-    [palbrattberg.com]=git@github.com:pal/palbrattberg.com.git
-    [ai-pres]=git@github.com:pal/ai-pres.git
-    [deep-research]=git@github.com:pal/deep-research.git
-    [domainchecker]=git@github.com:pal/domainchecker.git
-    [mousegame]=git@github.com:pal/mousegame.git
-    [k8s-hosting]=git@github.com:subtree/k8s-hosting.git
-    [bolt.diy]=git@github.com:stackblitz-labs/bolt.diy.git
-    [opencontrol]=git@github.com:toolbeam/opencontrol.git
-    # [productvoice]=git@github.com:WeDoProducts/productvoice.git
-    # [covid-containment]=git@github.com:Shpigford/covid-containment.git
+    ["peasy-master"]="git@github.com:pal/peasy.git#master"
+    ["peasy"]="git@github.com:pal/peasy.git#planetscale"
+    ["frankfurter"]="git@github.com:pal/frankfurter.git"
+    ["peasy_client"]="git@github.com:pal/peasy_client.git"
+    ["peasyv3"]="git@github.com:pal/peasyv3.git"
+    ["peasy-ui"]="git@github.com:subtree/peasy-ui.git"
+    ["saas-template"]="git@github.com:subtree/saas-template.git"
+    ["template-magic-board"]="git@github.com:subtree/template-magic-board.git"
+    ["setup-hosting"]="git@github.com:subtree/setup-hosting.git"
+    ["companynamemaker.com"]="git@github.com:subtree/companynamemaker.com.git"
+    ["juniormarketer.ai"]="git@github.com:subtree/juniormarketer.ai.git"
+    ["social-image-creator"]="git@github.com:subtree/social-image-creator.git"
+    ["saas-template-upptime"]="git@github.com:subtree/saas-template-upptime.git"
+    ["subtree-sites"]="git@github.com:subtree/subtree-sites.git"
+    ["subtree.se"]="git@github.com:subtree/subtree.se.git"
+    ["jujino.com"]="git@github.com:subtree/jujino.com.git"
+    ["julafton.com"]="git@github.com:subtree/julafton.com.git"
+    ["mac-setup-script"]="git@github.com:pal/mac-setup-script.git"
+    ["palbrattberg.com"]="git@github.com:pal/palbrattberg.com.git"
+    ["ai-pres"]="git@github.com:pal/ai-pres.git"
+    ["deep-research"]="git@github.com:pal/deep-research.git"
+    ["domainchecker"]="git@github.com:pal/domainchecker.git"
+    ["mousegame"]="git@github.com:pal/mousegame.git"
+    ["k8s-hosting"]="git@github.com:subtree/k8s-hosting.git"
+    ["bolt.diy"]="git@github.com:stackblitz-labs/bolt.diy.git"
+    ["opencontrol"]="git@github.com:toolbeam/opencontrol.git"
+    # ["productvoice"]=git@github.com:WeDoProducts/productvoice.git
+    # ["covid-containment"]=git@github.com:Shpigford/covid-containment.git
   )
   
   for dir in "${!REPOS[@]}"; do
