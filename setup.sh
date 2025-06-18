@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.35"
+SCRIPT_VERSION="1.0.36"
 
 # Get current user's username
 USERNAME=$(whoami)
@@ -147,7 +147,7 @@ accept_xcode_license(){
 brew_bundle(){
   log "📦 Installing Homebrew packages and casks..."
   BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum yarn)
-  BREW_CASKS=(1password aws-vault beekeeper-studio cloudflare-warp cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome microsoft-teams mysides orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
+  BREW_CASKS=(1password aws-vault beekeeper-studio cloudflare-warp cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome microsoft-teams mysides orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom chatgpt)
   
   # Get list of installed packages and casks once
   INSTALLED_PKGS=$(brew list --formula -1)
@@ -613,7 +613,17 @@ EOF
 
 post_install(){
   log "Post-installation steps:"
-  log "1. Open and sign in to required apps: 1Password, Dropbox, Google Chrome, Magnet, Slack, Outlook, Teams"
+  log "1. Open and sign in to required apps:"
+  log "   • 1Password"
+  log "   • Dropbox"
+  log "   • Google Chrome" 
+  log "   • Magnet"
+  log "   • Slack"
+  log "   • Outlook"
+  log "   • Teams"
+  log "   • Spotify"
+  log "   • Cursor"
+  log "   • RapidAPI"
   log "2. Configure Dropbox selective sync."
 }
 
