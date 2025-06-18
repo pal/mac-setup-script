@@ -2,7 +2,7 @@
 IFS=$'\n\t'
 
 # Every time this script is modified, the SCRIPT_VERSION must be incremented
-SCRIPT_VERSION="1.0.32"
+SCRIPT_VERSION="1.0.35"
 
 # Get current user's username
 USERNAME=$(whoami)
@@ -146,7 +146,7 @@ accept_xcode_license(){
 
 brew_bundle(){
   log "📦 Installing Homebrew packages and casks..."
-  BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum)
+  BREW_PKGS=(aws-cdk awscli bash direnv eza ffmpeg fish gh git jq libpq mackup mas maven p7zip pkgconf pnpm postgresql@16 ripgrep subversion wget nx gum yarn)
   BREW_CASKS=(1password aws-vault beekeeper-studio cloudflare-warp cursor cyberduck devutils discord dropbox dynobase elgato-control-center figma rapidapi font-fira-code font-input font-inter font-jetbrains-mono font-roboto font-geist-mono ghostty google-chrome microsoft-teams mysides orbstack raycast session-manager-plugin slack telegram spotify visual-studio-code zoom)
   
   # Get list of installed packages and casks once
@@ -671,12 +671,23 @@ check_manual_steps(){
   fi
 }
 
+# Install Bun (not available via Homebrew)
+install_bun(){
+  log "🍞 Installing Bun..."
+  if command -v bun &>/dev/null; then
+    log "Bun already installed"
+    return 0
+  fi
+  curl -fsSL https://bun.sh/install | bash || error "Failed to install Bun"
+}
+
 main(){
   prevent_sleep
   install_xcode_clt
   install_homebrew
   accept_xcode_license
   brew_bundle
+  install_bun
   check_manual_steps
   mas_install
   set_names
