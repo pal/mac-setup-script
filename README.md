@@ -1,3 +1,5 @@
+# RETIRED REPO - SEE https://github.com/pal/dotfiles for new version
+
 # New Mac Setup
 
 Here's a script that will setup a new Mac with all the tools and apps I use.
